@@ -5,7 +5,7 @@ This repository is a structured, comprehensive collection of notes designed base
 - [Introduction to Containers](#introduction-to-containers)
   - [Introduction](#introduction)
   - [Virtualization and Containerization Architecture](#virtualization-and-containerization-architecture)
-  - [Virtual Machines (VMs) vs. Docker Containers](#virtual-machines-vms-vs-docker-containers)
+  - [Virtual Machines vs. Docker Containers](#virtual-machines-vs-docker-containers)
 - [Reference](#reference)
 
 
@@ -62,7 +62,7 @@ This repository is a structured, comprehensive collection of notes designed base
     end
   ```
 - **Containerization architecture:**
-  - **Container Engine:** is responsible for managing containers. Only application and its dependencies are packaged inside a container. Because there's no additional OS running inside of the containers, this contributes to having faster and leaner containers.
+  - **Container Engine:** is responsible for **managing containers.** Only application and its dependencies are packaged inside a container. Because there's no additional OS running inside of the containers, this contributes to having faster and leaner containers.
 
   ```mermaid
   block
@@ -89,9 +89,9 @@ This repository is a structured, comprehensive collection of notes designed base
       class Container_1,Container_2 blue
     end
   ```
-### Virtual Machines (VMs) vs. Docker Containers
+### Virtual Machines vs. Docker Containers
 - **Isolation:**
-  - **VMs** provide a **stronger isolation** since each VM has its own OS, they are completely isolated from each other.
+  - **Virtual Machines** (VMs) provide a **stronger isolation** since each VM has its own OS, they are completely isolated from each other.
   - **Containers** provide **process-level isolation.** Containers share the host OS kernel, but they're running in isolation of each other. This isolation is managed by the container engine.
 - **Size/Overhead:**
   - **VMs** have a **larger footprint** due to the guest OS and virtual hardware.
