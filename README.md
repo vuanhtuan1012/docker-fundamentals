@@ -96,7 +96,7 @@ This repository is a structured, comprehensive collection of notes designed base
 - **Size/Overhead:**
   - **VMs** have a **larger footprint** due to the guest OS and virtual hardware.
   - **Containers** are considerably **more lightweight** since they have minimal overhead.
-- **Porability:**
+- **Portability:**
   - **VMs** are **less portable** than containers because they might be tied to specific hypervisors or some configuration in the OS.
   - **Containers** are really **fully portable.** Containers should be platform-agnostic. If they're not platform-agnostic, they're not well-designed.
 - **Use cases:**
