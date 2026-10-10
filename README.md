@@ -176,23 +176,35 @@ block
 ## Running Containers Using Docker
 
 ### Running Your First Container
-- **Pull** an image from **Image Registry** to **Image Cache:** `docker pull [image_name]`. *For example:* `docker pull nginx`.
+- **Pull** an image from **Image Registry** to **Image Cache:** `docker pull [image_name:tag]`. If we **omit** the tag, it **defaults to** the `latest` tag.
+
+  *For example:* `docker pull nginx`.
 - **List images** stored locally (in Image Cache): `docker images`.
-- **Remove a local image:** `docker image rm [image_name]`. *For example:* `docker image rm nginx:stable-trixie-perl`
-- **Run** an image: `docker run [image_name]`. *For example:* `docker run nginx`. This command will **create a new** container **and start** it.
-  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name]`. *For example:* `docker run -d nginx`.
+- **Remove a local image:** `docker image rm [image_name:tag]`. If we **omit** the tag, it **defaults to** the `latest` tag.
+
+  *For example:* `docker image rm nginx:stable-trixie-perl`
+- **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it.
+
+  *For example:* `docker run nginx`.
+  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name]`.
+
+    *For example:* `docker run -d nginx`.
 
     In detached mode, Docker **runs the container in the background** without attaching the terminal to its output.
 
     **In practice,** we often use this flag **to free up** the terminal and **continue running** silently.
-  - **Assign a custom name** to a container by using the flag `--name [custom_name]`. *For example:* `docker run --name web_server nginx`.
+  - **Assign a custom name** to a container by using the flag `--name [custom_name]`.
+
+    *For example:* `docker run --name web_server nginx`.
 
     This flag is **useful** because:
     - **without** `--name`, Docker generates a name **automatically**, such as `great_lichterman`.
     - **with** `--name`, we **choose a meaningful name.** It makes containers easier to identify and manage.
 
     Container names are **often used** in commands like `docker logs`, `docker stop`, `docker start`, `docker kill`, and `docker rm` instead of referring to container IDs.
-  - **Map a port** on local computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`. *For example:* `docker run -p 8080:80 nginx` maps port 8080 on local computer to port 80 inside the container.
+  - **Map a port** on local computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`.
+
+    *For example:* `docker run -p 8080:80 nginx` maps port 8080 on local computer to port 80 inside the container.
 - **List** running Docker containers: `docker ps`.
   - `ps` stands for **Process Status** in Unix/Linux.
   - List all containers, **including stopped** ones: `docker ps -a`.
