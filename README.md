@@ -7,6 +7,8 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Virtualization and Containerization Structure](#virtualization-and-containerization-structure)
   - [Virtual Machines vs. Docker Containers](#virtual-machines-vs-docker-containers)
   - [Docker Architecture](#docker-architecture)
+- [Running Containers Using Docker](#running-containers-using-docker)
+  - [Running Your First Container](#running-your-first-container)
 - [Reference](#reference)
 
 
@@ -90,6 +92,7 @@ This repository is a structured, comprehensive collection of notes designed base
       class Container_1,Container_2 blue
     end
   ```
+
 ### Virtual Machines vs. Docker Containers
 - **Isolation:**
   - **Virtual Machines** (VMs) provide a **stronger isolation** since each VM has its own OS, they are completely isolated from each other.
@@ -111,7 +114,6 @@ This repository is a structured, comprehensive collection of notes designed base
     - **portability** across different environments **is a top priority.**
 
 ### Docker Architecture
-
 ```mermaid
 block
   classDef default fill:#ECECFF, stroke:#9370DB;
@@ -169,6 +171,52 @@ block
      - If we're **using a private** Image Registry, Docker host **must also be** authenticated to **be able to download** images.
      - If we're **using a public one,** *for example,* [Docker Hub](https://hub.docker.com), we **don't need** to authenticate **to download** public images.
      - Nonetheless, **whenever** we want to **push or publish** something to the Image Registry, we do **need to be authenticated.**
+
+
+## Running Containers Using Docker
+
+### Running Your First Container
+- **Pull** an image from **Image Registry** to **Image Cache:** `docker pull [image_name]`. *For example:* `docker pull nginx`.
+- **List images** stored locally (in Image Cache): `docker images`.
+- **Remove a local image:** `docker image rm [image_name]`. *For example:* `docker image rm nginx:stable-trixie-perl`
+- **Run** an image: `docker run [image_name]`. *For example:* `docker run nginx`. This command will **create a new** container **and start** it.
+  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name]`. *For example:* `docker run -d nginx`.
+
+    In detached mode, Docker **runs the container in the background** without attaching the terminal to its output.
+
+    **In practice,** we often use this flag **to free up** the terminal and **continue running** silently.
+  - **Assign a custom name** to a container by using the flag `--name [custom_name]`. *For example:* `docker run --name web_server nginx`.
+
+    This flag is **useful** because:
+    - **without** `--name`, Docker generates a name **automatically**, such as `great_lichterman`.
+    - **with** `--name`, we **choose a meaningful name.** It makes containers easier to identify and manage.
+
+    Container names are **often used** in commands like `docker logs`, `docker stop`, `docker start`, `docker kill`, and `docker rm` instead of referring to container IDs.
+  - **Map a port** on local computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`. *For example:* `docker run -p 8080:80 nginx` maps port 8080 on local computer to port 80 inside the container.
+- **List** running Docker containers: `docker ps`.
+  - `ps` stands for **Process Status** in Unix/Linux.
+  - List all containers, **including stopped** ones: `docker ps -a`.
+  - List **only stopped** containers: `docker ps -a --filter "status=exited"`.
+  - Displays **only** container IDs: `docker ps -q`.
+- **Stop a container:** `docker stop [container_name]` or `docker kill [container_name]`. Both these two commands stop the container. The **main difference** is **how the container is stopped.**
+  - `docker kill`: **Immediately** sends a signal to stop the container, by defaul `SIGKILL`.
+  - `docker stop`: **gracefully stops** the container, **giving** the application time to shut down. Docker **sends** `SIGTERM` to the container's main process **and waits for a grace period** (10 seconds by default on Linux containers). If the process hasn't stopped by then, Docker send `SIGKILL`. This gives the application a chance to:
+    - finish ongoing work,
+    - close database connections,
+    - save data and clean up resources.
+  - **Rule of thumb:**
+    - use `docker stop` for normal operations.
+    - use `docker kill` when we need to terminate a container immediately.
+- **Remove a container:**
+  - remove a **stopped container:** `docker rm [container_name]`.
+  - list **only stopped** containers: `docker ps -a --filter "status=exited"`.
+  - **force-remove** a container, stopping it if necessary: `docker rm -f [container_name]`.
+  - **remove all stopped** containers after confirmation: `docker container prune`.
+
+  It's a **good practice** to **clean up containers** that is **no longer used.**
+  - **Organization:** avoid accumulating lots of old containers.
+  - **Disk space:** containers can store writable-layer data and logs that consume disk space.
+  - **Avoid name conflicts:** a stopped container still reserves its name, so we can't reuse that name until we remove it.
 
 
 ## Reference
