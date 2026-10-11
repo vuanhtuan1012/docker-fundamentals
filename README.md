@@ -249,7 +249,7 @@ block
       *For example:* `docker logs web_server`.
 
       **Useful flags:**
-      - `-f` (`--follow`): **continuously displays** new log output, like watching a live log.
+      - `-f` (`--follow`): **continuously displays** new log output, like **watching a live log.**
 
         *For example:* `docker logs -f web_server`.
       - `--tail`: **displays the last** `n` lines.
@@ -296,9 +296,47 @@ block
     If a container is stopped, it's in the **stopped phase.** The container **still exists** and **can be seen** with `docker ps -a`.
 
     We can also **inspect the logs** of the container `docker logs [container_name]` and **inspect the container** itself `docker inspect [container_name]`.
-5. Container **removed**
+4. Container **removed**
 
    `docker rm [container_name]` removes a **stopped container.** It compeletely does some **cleanup and free up** resources. The **container and its contents** are **removed, not available** anymore.
+
+5. **Restart policy**
+
+   A restart policy **defines** whether Docker **should automatically restart** a container **when** it exits **or when** Docker restarts.
+
+   There're **four restart policies:**
+   - `no`: Never automatically restart the container. This **is the default.**
+   - `on-failure`: Restart **if** the container **exits with** a **non-zero** exit code.
+   - `always`: Always restart the container **if** it stops, and restart it **when** the Docker daemon starts again, **subject to** Docker's restart rules.
+   - `unless-stopped`: **like** `always`, but a container **manually stopped** by you **remains stopped when** the Docker daemon restarts.
+
+   **Useful commands:**
+   - **Define** the restart policy by using the `--restart` flag **when creating** a container **from** an image. *For example:*
+
+      ```cmd
+      # use no restart policy
+      docker run -d --name web_server nginx
+
+      # use on-failure restart policy
+      docker run -d --name web_server --restart on-failure:5 nginx
+
+      # use always restart policy
+      docker run -d --name web_server --restart always nginx
+
+      # use unless-stopped restart policy
+      docker run -d --name web_server --restart unless-stopped nginx
+      ```
+      `on-failure:5` defines that Docker **retries** the container **up to five times** if its main process **exits with** a **non-zero** code.
+   - **Check the configured** restart policy of a container by using the `--format` flag of the `docker inspect` command. *For example:*
+
+      ```cmd
+      docker inspect --format "{{.HostConfig.RestartPolicy}} web_server"
+      ```
+   - **Update the configured** restart policy of a container by using the `--restart` flag of the `docker update` command. *For example:*
+
+      ```cmd
+      docker update --restart always web_server
+      ```
 
 ### Build Your First Docker Image
 
