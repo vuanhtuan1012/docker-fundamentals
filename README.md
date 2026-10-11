@@ -11,6 +11,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Running Your First Container](#running-your-first-container)
   - [Container Lifecyle](#container-lifecyle)
   - [Build Your First Docker Image](#build-your-first-docker-image)
+  - [Mounting a Local Directory](#mounting-a-local-directory)
 - [Reference](#reference)
 
 
@@ -150,7 +151,7 @@ block
   - **API Call:** The Docker CLI **translates** a command into a request to the Docker API.
 - **Docker Host:**
   - **REST API:** The **interface** through which the Docker client **communicates with** the Docker Daemon. It defines operations such as: create container, start container, stop container, pull image, list containers, etc.
-  - **Docker Daemon:** The **main Docker service/process** that does the **actual work** on the Docker host. It **receives** API requests and **manages** containers, images, networks, volumnes. The daemon is commonly the `dockerd` process.
+  - **Docker Daemon:** The **main Docker service/process** that does the **actual work** on the Docker host. It **receives** API requests and **manages** containers, images, networks, volumes. The daemon is commonly the `dockerd` process.
   - **Containers:** the **actual running application environments** managed by Docker. A container is **created from** an image. **It's an instance** of an image.
   - **Image Cache:** contains **local images.** Docker can create containers from them **without downloading** them again. If an image isn't available locally (*in the image cache*), Docker can pull it from a registry.
 - **Image Registry:** a server that **stores and distributes** Docker images. The most famous example is [Docker Hub](https://hub.docker.com).
@@ -188,7 +189,7 @@ block
 - **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it. If we **omit** the tag, it **defaults to** the `latest` tag.
 
   *For example:* `docker run nginx`.
-  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name]`.
+  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name:tag]`.
 
     *For example:* `docker run -d nginx`.
 
@@ -234,13 +235,13 @@ block
 
 ### Container Lifecyle
 1. **Initializing** a container
-   - **Create** a container: `docker create --name [container_name] [image_name]`. The container **is created** but is **not running** yet.
+   - **Create** a container: `docker create --name [container_name] [image_name:tag]`. The container **is created** but is **not running** yet.
 
       *For example:* `docker create --name web_server -p 8080:80 nginx`.
    - **Start** a container: `docker start [container_name]`.
 
       *For example:* `docker start web_server`.
-   - **Create and start** a container: `docker run -d --name [container_name] [image_name]`.
+   - **Create and start** a container: `docker run -d --name [container_name] [image_name:tag]`.
 
       *For example:* `docker run -d --name web_server -p 8080:80 nginx`.
 2. Container **running**
@@ -255,7 +256,7 @@ block
       - `--tail`: **displays the last** `n` lines.
 
         *For example:* `docker logs --tail 100 web_server`.
-   - **Display detailed configuration** and **state information** about a **container or image** in JSON format: `docker inspect [container_name] / [image_name]`. This command is **often used when** we need to check a container's status, IP address, port mappings, environment variables, etc.
+   - **Display detailed configuration** and **state information** about a **container or image** in JSON format: `docker inspect [container_name] / [image_name:tag]`. This command is **often used when** we need to check a container's status, IP address, port mappings, environment variables, etc.
 
       *For example:* `docker inspect web_server`, `docker inspect nginx:latest`.
 
@@ -409,6 +410,35 @@ block
    ```cmd
    docker run --name hello_docker hello-docker:1.0
    ```
+
+### Mounting a Local Directory
+- There're two approaches to mount a directory on host computer into a Docker container, using `-v` (Docker volume) or `--mount` (Bind mount) with `docker run`.
+  - Using **Docker volume:** `docker run -v [path_to_host_dir]:[path_to_container_dir] [image_name:tag]`. *For example:*
+
+    ```cmd
+    docker run -d --name web_server -p 80:80 -v "${PWD}\site:/usr/share/nginx/html" nginx
+    ```
+    - `PWD`: stands for **Print Working Directory.**
+    - `$PWD`: **access** the automatic variable directly.
+    - `${PWD}`: **access** the variable using braces. It **is useful when** the variable name touches other characters.
+    - `$(...)`: **evaluate** an expression **and substitute** its result as a string. *For example:* `$(docker ps -q)`.
+  - Using **bind mount:** `docker run --mount "type=bind,source=[path_to_host_dir],target=[path_to_container_dir]" [image_name:tag]`. *For example:*
+
+    ```cmd
+    docker run --rm -it --mount "type=bind,source=${PWD}\hello-docker,target=/app" python:3.12-slim bash
+    ```
+    - `--rm`: **Removes** the container **when it exits.** This is useful for testing.
+    - `-it`: Opens an **interactive terminal.**
+
+    We **can set** the directory **to** `read-only` on the host container by adding the `readonly` attribute, like this, `docker run --mount "type=bind,source=[path_to_host_dir],target=[path_to_container_dir],readonly" [image_name:tag]`. This **is useful for** configuration files, datasets, and other files the container shouldn't change.
+
+- **Difference:**
+  - With **bind mount,** Docker normally **reports an error if** the source path **doesn't exist.**
+  - The **Docker volume can create a missing host directory** automatically.
+- **Rule of thumb:**
+  - Use a **bind mount when** we want a container to **access a particular** local directory.
+  - Use a **volume when** Docker should **manage** persistent data **independently** of the project data.
+- **Like port mapping,** we **can't change or update** a volume or a bind mount once a container is created. It must be configured when creating the container with `docker run`.
 
 
 ## Reference
