@@ -9,6 +9,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Docker Architecture](#docker-architecture)
 - [Running Containers Using Docker](#running-containers-using-docker)
   - [Running Your First Container](#running-your-first-container)
+  - [Container Lifecyle](#container-lifecyle)
 - [Reference](#reference)
 
 
@@ -180,10 +181,10 @@ block
 
   *For example:* `docker pull nginx`.
 - **List images** stored locally (in Image Cache): `docker images`.
-- **Remove a local image:** `docker image rm [image_name:tag]`. If we **omit** the tag, it **defaults to** the `latest` tag.
+- **Remove a local image:** `docker image rm [image_name:tag]`.
 
   *For example:* `docker image rm nginx:stable-trixie-perl`
-- **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it.
+- **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it. If we **omit** the tag, it **defaults to** the `latest` tag.
 
   *For example:* `docker run nginx`.
   - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name]`.
@@ -205,13 +206,13 @@ block
   - **Map a port** on local computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`.
 
     *For example:* `docker run -p 8080:80 nginx` maps port 8080 on local computer to port 80 inside the container.
-- **List** running Docker containers: `docker ps`.
+- **List running** Docker containers: `docker ps`.
   - `ps` stands for **Process Status** in Unix/Linux.
   - List all containers, **including stopped** ones: `docker ps -a`.
   - List **only stopped** containers: `docker ps -a --filter "status=exited"`.
-  - Displays **only** container IDs: `docker ps -q`.
+  - Display **only** container IDs: `docker ps -q`. This **is useful when** passed into a subcommand. *For example,* to **stop all running** containers: `docker stop $(docker ps -q)`.
 - **Stop a container:** `docker stop [container_name]` or `docker kill [container_name]`. Both these two commands stop the container. The **main difference** is **how the container is stopped.**
-  - `docker kill`: **Immediately** sends a signal to stop the container, by defaul `SIGKILL`.
+  - `docker kill`: **Immediately** sends a signal to stop the container, by defaul `SIGKILL`. The **danger** here is that we might **lose some content** that is in memory and the process, the container **doesn't have time** to persist this content to disk.
   - `docker stop`: **gracefully stops** the container, **giving** the application time to shut down. Docker **sends** `SIGTERM` to the container's main process **and waits for a grace period** (10 seconds by default on Linux containers). If the process hasn't stopped by then, Docker send `SIGKILL`. This gives the application a chance to:
     - finish ongoing work,
     - close database connections,
@@ -230,6 +231,73 @@ block
   - **Disk space:** containers can store writable-layer data and logs that consume disk space.
   - **Avoid name conflicts:** a stopped container still reserves its name, so we can't reuse that name until we remove it.
 
+### Container Lifecyle
+1. **Initializing** a container
+   - **Create** a container: `docker create --name [container_name] [image_name]`. The container **is created** but is **not running** yet.
+
+      *For example:* `docker create --name web_server -p 8080:80 nginx`.
+   - **Start** a container: `docker start [container_name]`.
+
+      *For example:* `docker start web_server`.
+   - **Create and start** a container: `docker run -d --name [container_name] [image_name]`.
+
+      *For example:* `docker run -d --name web_server -p 8080:80 nginx`.
+2. Container **running**
+   - **Display the logs** produced by a container: `docker logs [container_name]`. It's **often used when** a container fails to start properly or an application reports errors.
+
+      *For example:* `docker logs web_server`.
+
+      **Useful flags:**
+      - `-f` (`--follow`): **continuously displays** new log output, like watching a live log.
+
+        *For example:* `docker logs -f web_server`.
+      - `--tail`: **displays the last** `n` lines.
+
+        *For example:* `docker logs --tail 100 web_server`.
+   - **Display detailed configuration** and **state information** about a **container or image** in JSON format: `docker inspect [container_name] / [image_name]`. This command is **often used when** we need to check a container's status, IP address, port mappings, environment variables, etc.
+
+      *For example:* `docker inspect web_server`, `docker inspect nginx:latest`.
+
+      We can **inspect specific properties** using the flag `--format`. *For example:*
+
+      `docker inspect --format "{{.State.Status}}" web_server`.
+
+      `docker inspect --format "{{json .NetworkSettings.Ports}}" web_server`.
+    - **Execute** a command **inside** an **already-running** container, **without** creating another container: `docker exec [container_name] [command]`. It is **often used when** we want to inspect files, check processes, or execute diagnostic commands **inside a running** container.
+
+      *For example:* `docker exec web_server nginx -v`.
+
+      `docker exec -it web_server bash`: **open a shell** inside the `web_server` Nginx container.
+      - `-i`: **keep standard input** open.
+      - `-t`: **allocate** a terminal.
+      - `bash`: the shell to run inside the container.
+    - **Freeze** a container: `docker pause [container_name]`.
+
+      *For example:* `docker pause web_server`.
+
+      Docker **suspends all processes** in the container. They **stop executing until** the container is unpaused.
+      - The container still exists. Its **status becomes** `Paused`.
+      - Its configuration and filesystem **remain intact.**
+    - **Resume** a container: `docker unpause [container_name]`.
+
+      *For example:* `docker unpause web_server`.
+
+      Docker **resumes the paused** processes. They **continue from** where they were suspended, rather than starting over.
+    - **Stop** a container:
+      - **Gracefully** stop the main process: `docker stop [container_name]`.
+      - **Forcefully** stop the main process: `docker kill [container_name]`.
+
+      The main process might **exit with** either a **zero code** or with a **non-zero** code.
+      - `exit 0` means everything **ok.**
+      - `exit <non-zero>` means **an error occured.**
+3. Container **stopped**
+
+    If a container is stopped, it's in the **stopped phase.** The container **still exists** and **can be seen** with `docker ps -a`.
+
+    We can also **inspect the logs** of the container `docker logs [container_name]` and **inspect the container** itself `docker inspect [container_name]`.
+5. Container **removed**
+
+   `docker rm [container_name]` removes a **stopped container.** It compeletely does some **cleanup and free up** resources. The **container and its contents** are **removed, not available** anymore.
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
