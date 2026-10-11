@@ -10,6 +10,7 @@ This repository is a structured, comprehensive collection of notes designed base
 - [Running Containers Using Docker](#running-containers-using-docker)
   - [Running Your First Container](#running-your-first-container)
   - [Container Lifecyle](#container-lifecyle)
+  - [Build Your First Docker Image](#build-your-first-docker-image)
 - [Reference](#reference)
 
 
@@ -298,6 +299,79 @@ block
 5. Container **removed**
 
    `docker rm [container_name]` removes a **stopped container.** It compeletely does some **cleanup and free up** resources. The **container and its contents** are **removed, not available** anymore.
+
+### Build Your First Docker Image
+
+1. **Create a project directory**
+
+   ```cmd
+   mkdir hello-docker
+   cd hello-docker
+   ```
+   The project directory will contain two files:
+
+   ```text
+    hello-docker
+    │
+    ├── app.py  # Python application
+    └── Dockerfile  # Image instructions
+    ```
+2. **Create the Python application**
+
+    Create a file named `app.py` with this content.
+
+    ```python
+    print("Hello from Docker!")
+    ```
+    This is the application that our container will execute.
+3. **Create the Dockerfile**
+
+   Create another file named `Dockerfile`, **without a file extension,** with this content.
+
+   ```dockerfile
+   # Start from an official Python image
+   FROM python:3.12-slim
+
+   # Set the working directory in the container
+   WORKDIR /app
+
+   # Copy the application files to the container
+   COPY app.py .
+
+   # Run the application when the container starts
+   CMD ["python", "app.py"]
+   ```
+   Here's what each instruction does:
+   - **FROM:** specifies the **base image,** which provides Python.
+   - **WORKDIR:** sets `/app` as the **working directory inside** the image.
+
+      `/app` is a **common convention for** application files. Docker **creates** `/app` if it **doesn't exist,** then set it as the working directory.
+   - **COPY:** copies `app.py` from the project directory **into the working directory** in the image.
+   - **CMD:** specifies the **default command to execute** when a container starts.
+
+4. **Build the Docker image**
+
+   From **inside the project directory** `hello-docker`, run `docker build`.
+
+   ```cmd
+   docker build -t hello-docker:1.0 .
+   ```
+   Let's break down the command.
+   - `docker build`: builds an **image from** a Dockerfile.
+   - `-t hello-docker:1.0`: **names** the image `hello-docker` and **assigns** it the **tag** `1.0`.
+   - `.`: uses the current directory as the **build context,** the set of files Docker can access for instructions such as `COPY`.
+
+      Docker **will download** the Python base image **if** it **isn't already available** locally, the execute the `Dockerfile` instructions.
+5. **Check the image**
+
+   Run the command `docker images` to verify that the image `hello-docker:1.0` in the list of images.
+6. **Run a container** from the created image
+
+   Run a container from the image that we've just created to confirm that it prints `Hello from Docker!`.
+   ```cmd
+   docker run --name hello_docker hello-docker:1.0
+   ```
+
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
