@@ -18,6 +18,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Dockerfile vs. Compose file](#dockerfile-vs-compose-file)
 - [Introduction to Docker Images](#introduction-to-docker-images)
   - [What are Docker Images?](#what-are-docker-images)
+  - [Container Registries](#container-registries)
 - [Reference](#reference)
 
 
@@ -563,6 +564,17 @@ For a Python application, we can **use both:**
   - [**Docker Hub**](https://hub.docker.com): official Docker image repository, **offering a vast collection** of images for various purposes.
   - **Private registries:** for organizations or individuals with proprietary software. Private registries **provide secure storage** for custom images.
   - **Building own images:** writting `Dockerfile`s creates images that perfectly match our application's requirements.
+
+### Container Registries
+- Container registries **store and manage** Docker images.
+- Container registries **offer** a **multitude of benifits:**
+  - **Collaboration: share images** with teammates, clients, or the wider community.
+  - **Versioning: track different versions** of our images for easy rollback and updates.
+  - **Security:** Private registries **provide a secure environment** for storing sensitive images.
+  - **Automation:** Automate image building and deployment **as part of** a CI/CD pipeline.
+- **Types** of container registries:
+  - **Public registries:** open to everyone and host a **vast collection of images** from various sources. [Docker Hub](https://hub.docker.com) is the most prominent example.
+  - **Private registries:** used for storing **proprietary or sensitive images** and offer granular **access control.**
 
 
 ## Reference
