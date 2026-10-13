@@ -16,6 +16,8 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Why Do We Need Docker Compose?](#why-do-we-need-docker-compose)
   - [Build Your First Compose Project](#build-your-first-compose-project)
   - [Dockerfile vs. Compose file](#dockerfile-vs-compose-file)
+- [Introduction to Docker Images](#introduction-to-docker-images)
+  - [What are Docker Images?](#what-are-docker-images)
 - [Reference](#reference)
 
 
@@ -527,6 +529,40 @@ Key **benefits over manually** management containers is file-based configuration
 For a Python application, we can **use both:**
 - the `Dockerfile` builds our Python images,
 - the `compose.yaml` defines how to run the Python service alongside a database or other services.
+
+
+## Introduction to Docker Images
+
+### What are Docker Images?
+- We can think about Docker images as the **DNA of containers.**
+- Basically, they're **blueprints** that's gonna be used by Docker **to create** new containers. Every container that is created based on an image will have the exact same shape at the beginning of that container lifetime.
+- Images are **self-contained,** read-only template that **encapsulates everything needed** to run our application. They often contain:
+  ```mermaid
+  block
+    classDef default fill:#ECECFF, stroke:#9370DB;
+    columns 1
+
+    block:Image
+      columns 1
+      Configuration
+      App["Application Code"]
+      Dependencies
+      RuntimeEnv["Runtime Environemnt"]
+      BaseImage["Base Layer"]
+
+      class Container_1,Container_2 blue
+    end
+  ```
+  - **The base layer:** often a minimal Linux distribution like Alpine, or a more full-fledged one like Ubuntu.
+  - **Runtime enivronment:** specific software (e.g., Python, Node.js) required by the application.
+  - **Libraries and dependencies:** all the external code that the application relies on.
+  - **Application code:** The application source code or its compiled binaries.
+  - **Configuration:** settings for the application and its environment. **Configuration might be** a little bit **trickier to package inside** of the image because **it varies very often** depending on which environment we're running the containers on.
+- A Docker image is **like a snapshot** of the **application and its complete runtime environment,** frozen in time and ready to be brought to life as a container.
+- Images can be **sources from mulitple locations:**
+  - [**Docker Hub**](https://hub.docker.com): official Docker image repository, **offering a vast collection** of images for various purposes.
+  - **Private registries:** for organizations or individuals with proprietary software. Private registries **provide secure storage** for custom images.
+  - **Building own images:** writting `Dockerfile`s creates images that perfectly match our application's requirements.
 
 
 ## Reference
