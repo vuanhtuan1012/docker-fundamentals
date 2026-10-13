@@ -19,6 +19,7 @@ This repository is a structured, comprehensive collection of notes designed base
 - [Introduction to Docker Images](#introduction-to-docker-images)
   - [What are Docker Images?](#what-are-docker-images)
   - [Container Registries](#container-registries)
+  - [Version pinning](#version-pinning)
 - [Reference](#reference)
 
 
@@ -575,6 +576,13 @@ For a Python application, we can **use both:**
 - **Types** of container registries:
   - **Public registries:** open to everyone and host a **vast collection of images** from various sources. [Docker Hub](https://hub.docker.com) is the most prominent example.
   - **Private registries:** used for storing **proprietary or sensitive images** and offer granular **access control.**
+
+### Version pinning
+- The `latest` tag is a **moving target,** meaning it **can point to** a different version of the image **every time** we pull it, which **introduce instability.**
+- Pinning to a **specific version** tag **ensures** that the production environment remains **consistent and predictable** across deployments.
+- It's **recommended to** actually **pin the version of the images** we are using because this gives a **high degree of stability** since we are always using the same image.
+- We **should update** the pinned version **regularly.** We should **not pin** it once **and** then just **forget** about it because new vulnerability are discovered.
+- **Regularly updating** pinned versions **allows** us to **incorporate security patches and fixes** while still **maintaining the stability** of the environment. It strikes the **perfect balance** between security and reliablity.
 
 
 ## Reference
