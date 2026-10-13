@@ -1,0 +1,16 @@
+# @Author: VU Anh Tuan
+# @Date:   2026-10-12 18:43:21
+# @Last Modified by:   VU Anh Tuan
+# @Last Modified time: 2026-10-12 20:26:20
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - type: bind
+        source: ./site
+        target: /usr/share/nginx/html
+        read_only: true
+  python-app:
+    image: hello-docker:latest

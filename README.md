@@ -12,6 +12,10 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Container Lifecyle](#container-lifecyle)
   - [Build Your First Docker Image](#build-your-first-docker-image)
   - [Mounting a Local Directory](#mounting-a-local-directory)
+- [Docker Compose](#docker-compose)
+  - [Why Do We Need Docker Compose?](#why-do-we-need-docker-compose)
+  - [Build Your First Compose Project](#build-your-first-compose-project)
+  - [Dockerfile vs. Compose file](#dockerfile-vs-compose-file)
 - [Reference](#reference)
 
 
@@ -350,7 +354,7 @@ block
    The project directory will contain two files:
 
    ```text
-    hello-docker
+    hello-docker/
     │
     ├── app.py  # Python application
     └── Dockerfile  # Image instructions
@@ -393,11 +397,11 @@ block
    From **inside the project directory** `hello-docker`, run `docker build`.
 
    ```cmd
-   docker build -t hello-docker:1.0 .
+   docker build -t hello-docker:latest .
    ```
    Let's break down the command.
    - `docker build`: builds an **image from** a Dockerfile.
-   - `-t hello-docker:1.0`: **names** the image `hello-docker` and **assigns** it the **tag** `1.0`.
+   - `-t hello-docker:latest`: **names** the image `hello-docker` and **assigns** it the **tag** `latest`.
    - `.`: uses the current directory as the **build context,** the set of files Docker can access for instructions such as `COPY`.
 
       Docker **will download** the Python base image **if** it **isn't already available** locally, the execute the `Dockerfile` instructions.
@@ -439,6 +443,90 @@ block
   - Use a **bind mount when** we want a container to **access a particular** local directory.
   - Use a **volume when** Docker should **manage** persistent data **independently** of the project data.
 - **Like port mapping,** we **can't change or update** a volume or a bind mount once a container is created. It must be configured when creating the container with `docker run`.
+
+
+## Docker Compose
+- Docker Compose is a **tool for defining and running** multi-container applications **using a configuration file.**
+- Instead of **manually creating containers** with long `docker run` commands, we **describe the setup once** in a `compose.yaml` file, and Docker Compose handles the creation and startup.
+
+### Why Do We Need Docker Compose?
+Imagine our application **consists of two services:**
+- A Python web application.
+- An Nginx web server.
+
+**Without** Docker Compose, we might run separate commands to build images, create containers, configure ports, set up mounts, and start services. We'd need to remember all those options.
+
+**With** Docker Compose, we describe the setup in one file `compose.yaml`, then Docker Compose creates and manages the containers and their networking based on the file.
+
+Key **benefits over manually** management containers is file-based configuration, reproducible setups, and centralized updates.
+
+### Build Your First Compose Project
+1. **Check Docker Compose:** `docker compose version`
+2. **Create the project:**
+
+   ```cmd
+   mkdir compose-nginx
+   cp -r site compose-nginx
+   cd compose-nginx
+   ```
+   The structure of the `compose-nginx` directory shkould now look like this:
+
+   ```text
+   compose-nginx/
+    │
+    ├── site/
+    └──── index.html
+   ```
+3. **Create** `compose.yaml`: create a file named `compose.yaml` in the `compose-nginx` directory with the content below.
+
+    This Compose project provides two services:
+    - a Python application from the `hello-docker:latest` image, built in [Build Your First Docker Image](#build-your-first-docker-image).
+    - an Nginx webserver.
+
+    ```yaml
+    services:
+      web:
+        image: nginx:latest
+        ports:
+          - "80:80"
+        volumes:
+          - type: bind
+            source: ./site
+            target: /usr/share/nginx/html
+            read_only: true
+      python-app:
+        image: hello-docker:latest
+    ```
+   - `services`: defines the services in our application.
+   - `web`, `python-app`: the name of services. **We choose it.**
+   - `image`: uses the `nginx:latest` and `hello-docker:latest` image.
+   - `ports`: maps host port `80` to the container port `80`.
+   - `volumes`: mounts the local `site` directory into the container.
+   - `read_only: true`: prevents the container from modifying the mounted files.
+   - The `source: ./site` path **is relative to** the Compose file's directory.
+4. **Start** the application: run the command `docker compose up -d` from the **directory containing** `compose.yaml`.
+5. **Manage** the application: Here are the primary commands for managing the application:
+   - `docker compose ps`: list the project's containers and their status.
+   - `docker compose logs`: view the service logs. *For examples:* to view output from the Python app:
+
+      ```cmd
+      docker compose logs python-app
+      ```
+      Compose **determines** which **project to target** from the **current directory,** the Compose file options, and potentially the project name. It means that `docker compose logs` **displays only** logs of the project in current directory.
+   - `docker compose stop`: stop the services without removing their containers.
+   - `docker compose start`: start previously stopped containers.
+   - `docker compose down`: **stop and remove** the project's containers and default network.
+
+### Dockerfile vs. Compose file
+| `Dockerfile`                                                 | `compose.yaml`                             |
+|--------------------------------------------------------------|--------------------------------------------|
+| Defines how to build an image.                               | Defines how to configure and run services. |
+| Specifies the base image, copied files, and startup command. | Specifies images, ports, volumnes, networks, and other runtime settings. |
+| Used by `docker build`.                                      | Used by `docker compose up`.               |
+
+For a Python application, we can **use both:**
+- the `Dockerfile` builds our Python images,
+- the `compose.yaml` defines how to run the Python service alongside a database or other services.
 
 
 ## Reference
