@@ -21,6 +21,8 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Container Registries](#container-registries)
   - [Importance of Versioning](#importance-of-versioning)
   - [Managing Docker Images](#managing-docker-images)
+  - [Introduction to Dockerfiles](#introduction-to-dockerfiles)
+  - [Docker Image Layers](#docker-image-layers)
 - [Reference](#reference)
 
 
@@ -653,8 +655,6 @@ For a Python application, we can **use both:**
         Dependencies
         RuntimeEnv["Runtime Environemnt"]
         BaseImage["Base Layer"]
-
-        class Container_1,Container_2 blue
       end
     ```
   - **The base layer:** often a minimal Linux distribution like Alpine, or a more full-fledged one like Ubuntu.
@@ -715,6 +715,63 @@ For a Python application, we can **use both:**
     docker push vuanhtuan1012/hello-docker:1.0
     ```
 
+### Introduction to Dockerfiles
+- Dockerfiles programmatically **define steps for** the creation of Docker Images.
+- Dockerfiles give us the power to create custom images that perfectly match our requirements. They **bring many advantages,** among which the main ones are:
+  - **Reproducibility:** By defining all the steps necessary to build Docker images, it **ensures that** anyone with the `Dockerfile` **can recreate** the **exact same image.**
+  - **Automation:** Dockerfiles **automate the build process** for our applications. This removes manual steps and **reduce the risk** of human error.
+  - **Transparency and Documentation:** Dockerfiles should **act as good documentation** for how the image is built by **providing a clear overview** of all the steps involved in building it.
+  - **Optimization:** Since Dockerfiles provide us full control over the build steps, we **can tackle into** optimizations to improve security and speed up build time and image size.
+
+### Docker Image Layers
+- Consider the `Dockerfile` we used to [build `hello-docker` image](#build-your-first-docker-image).
+
+    ```dockerfile
+    FROM python:3.12-slim
+    WORKDIR /app
+    COPY app.py .
+    CMD ["python", "app.py"]
+    ```
+- **Conceptually,** the image contains a filesystem **built from reusable layers:**
+
+    ```mermaid
+    block
+      classDef default fill:#ECECFF, stroke:#9370DB;
+      columns 1
+
+      block:Image
+        columns 1
+        ImageMetaData["Image metadata\nCMD ['python', 'app.py']"]
+        AppFiles["Application files\napp.py - added by COPY"]
+        BaseImage["Base image\nPython libraries and OS files from python:3.12-slim"]
+      end
+    ```
+  This is a conceptual diagram, **not an exact** one-layer-per-instruction representation.
+  - `WORKDIR` can create a filesystem layer,
+  - while `CMD` changes image metadata rather than adding a filesystem layer.
+  - The base image itself contains multiple layers.
+- This approach brings:
+  - **Reusability:** different images can share common layers.
+  - **Efficiency:** Docker doesn't need to download or store duplicate copies of shared layers in the same image store.
+  - **Build caching:** when appropriate inputs and instructions haven't changed. Docker can reuse cached build results.
+- **Image layers are read-only.** When Docker **creates a container,** it adds a separate **writable container layer** on top of the image layers.
+
+    ```mermaid
+    block
+      classDef default fill:#ECECFF, stroke:#9370DB;
+      columns 1
+
+      block:Image
+        columns 1
+        ContainerLayer["Writable container layer\nChanges made while the container runs"]
+        ImageLayers["Read-only image layers\nApplication, Python, system files"]
+        BaseImage["Base image layers\nShared and reusable"]
+      end
+    ```
+  **Adding** a new file to a container, it **will be stored** in that container's **writable layer,** not in the original image. **Consequently:**
+  - **Restarting** the same container **preserves** the file.
+  - **Removing** the container **deletes** its writable layer and the file.
+  - **Creating another** container from the same image **does not** give it that file. For data that must **survive container removal,** [use a Docker volume or a bind mount](#mounting-a-local-directory).
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
