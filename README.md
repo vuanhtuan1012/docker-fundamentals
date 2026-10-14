@@ -15,6 +15,9 @@ This repository is a structured, comprehensive collection of notes designed base
 - [Docker Compose](#docker-compose)
   - [Why Do We Need Docker Compose?](#why-do-we-need-docker-compose)
   - [Build Your First Compose Project](#build-your-first-compose-project)
+  - [Dockerfile vs. Compose file](#dockerfile-vs-compose-file)
+- [Introduction to Docker Images](#introduction-to-docker-images)
+  - [What are Docker Images?](#what-are-docker-images)
   - [Container Registries](#container-registries)
   - [Importance of Versioning](#importance-of-versioning)
   - [Managing Docker Images](#managing-docker-images)
@@ -638,22 +641,22 @@ For a Python application, we can **use both:**
 - We can think about Docker images as the **DNA of containers.**
 - Basically, they're **blueprints** that's gonna be used by Docker **to create** new containers. Every container that is created based on an image will have the exact same shape at the beginning of that container lifetime.
 - Images are **self-contained,** read-only template that **encapsulates everything needed** to run our application. They often contain:
-  ```mermaid
-  block
-    classDef default fill:#ECECFF, stroke:#9370DB;
-    columns 1
-
-    block:Image
+    ```mermaid
+    block
+      classDef default fill:#ECECFF, stroke:#9370DB;
       columns 1
-      Configuration
-      App["Application Code"]
-      Dependencies
-      RuntimeEnv["Runtime Environemnt"]
-      BaseImage["Base Layer"]
 
-      class Container_1,Container_2 blue
-    end
-  ```
+      block:Image
+        columns 1
+        Configuration
+        App["Application Code"]
+        Dependencies
+        RuntimeEnv["Runtime Environemnt"]
+        BaseImage["Base Layer"]
+
+        class Container_1,Container_2 blue
+      end
+    ```
   - **The base layer:** often a minimal Linux distribution like Alpine, or a more full-fledged one like Ubuntu.
   - **Runtime enivronment:** specific software (e.g., Python, Node.js) required by the application.
   - **Libraries and dependencies:** all the external code that the application relies on.
@@ -690,15 +693,15 @@ For a Python application, we can **use both:**
 - The **size of the images** is largely **depends on** how many **dependencies are installed** as well as the base image used. The smaller is normally better as long as it provides all the necessary tooling to run our application.
 - **Create a tag image** that **refers to** a source image: `docker tag [source_image:tag] [target_image:tag]`. *For example:* creating the `hello-docker:latest` tag image that refers to the `hello-docker:1.0` image.
 
-  ```bash
-  docker tag hello-docker:1.0 hello-docker
-  ```
+    ```bash
+    docker tag hello-docker:1.0 hello-docker
+    ```
   **Important:** Tagging **doesn't rebuild or duplicate** the image. Both names **refer to the same** local image.
 - **Remove image(s):** `docker rmi [image_name:tag]`. *For example:* remove all images
 
-  ```bash
-  docker rmi $(docker images -q)
-  ```
+    ```bash
+    docker rmi $(docker images -q)
+    ```
 - **Push** an images **to** [Docker Hub](https://hub.docker.com):
   - **Sign in** to [Docker Hub](https://hub.docker.com) from CLI.
   - **Tag** the **local image.** [Docker Hub](https://hub.docker.com) **requires** the image names to **include** the target **repository name,** which is typically the [Docker Hub](https://hub.docker.com) username. The image should be follow this format `[repository_name]/[image_name]:[tag]`. *For example:*
