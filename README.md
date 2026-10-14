@@ -15,11 +15,8 @@ This repository is a structured, comprehensive collection of notes designed base
 - [Docker Compose](#docker-compose)
   - [Why Do We Need Docker Compose?](#why-do-we-need-docker-compose)
   - [Build Your First Compose Project](#build-your-first-compose-project)
-  - [Dockerfile vs. Compose file](#dockerfile-vs-compose-file)
-- [Introduction to Docker Images](#introduction-to-docker-images)
-  - [What are Docker Images?](#what-are-docker-images)
   - [Container Registries](#container-registries)
-  - [Version pinning](#version-pinning)
+  - [Importance of Versioning](#importance-of-versioning)
 - [Reference](#reference)
 
 
@@ -187,41 +184,81 @@ block
 ## Running Containers Using Docker
 
 ### Running Your First Container
-- **Pull** an image from **Image Registry** to **Image Cache:** `docker pull [image_name:tag]`. If we **omit** the tag, it **defaults to** the `latest` tag.
+- **Pull** an image from **Image Registry** to **Image Cache:** `docker pull [image_name:tag]`. *For example:*
 
-  *For example:* `docker pull nginx`.
-- **List images** stored locally (in Image Cache): `docker images`.
-- **Remove a local image:** `docker image rm [image_name:tag]`.
+  ```bash
+  docker pull nginx
+  ```
+- **Note:** when **no image tag** is explicitly specified, Docker **defaults to** using `latest` automatically.
+- **List images** stored locally (in Image Cache):
 
-  *For example:* `docker image rm nginx:stable-trixie-perl`
-- **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it. If we **omit** the tag, it **defaults to** the `latest` tag.
+  ```bash
+  docker images
+  ```
+- **Remove a local image:** `docker image rm [image_name:tag]`. *For example:*
 
-  *For example:* `docker run nginx`.
-  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name:tag]`.
+  ```bash
+  docker image rm nginx:stable-trixie-perl
+  ```
+- **Run** an image: `docker run [image_name:tag]`. This command will **create a new** container **and start** it. *For example:*
 
-    *For example:* `docker run -d nginx`.
+  ```bash
+  docker run nginx
+  ```
+  - **Run** an image **in detached mode** by using the flag `-d`: `docker run -d [image_name:tag]`. *For example:*
 
-    In detached mode, Docker **runs the container in the background** without attaching the terminal to its output.
+    ```bash
+    docker run -d nginx
+    ```
+    In detached mode, Docker **runs the container in the background** without attaching the terminal to its output. We **often use** this flag **to free up** the terminal and **continue running** silently.
+  - **Assign a custom name** to a container by using the flag `--name [custom_name]`. *For example:*
 
-    **In practice,** we often use this flag **to free up** the terminal and **continue running** silently.
-  - **Assign a custom name** to a container by using the flag `--name [custom_name]`.
-
-    *For example:* `docker run --name web_server nginx`.
-
+    ```bash
+    docker run --name web_server nginx
+    ```
     This flag is **useful** because:
     - **without** `--name`, Docker generates a name **automatically**, such as `great_lichterman`.
     - **with** `--name`, we **choose a meaningful name.** It makes containers easier to identify and manage.
 
     Container names are **often used** in commands like `docker logs`, `docker stop`, `docker start`, `docker kill`, and `docker rm` instead of referring to container IDs.
-  - **Map a port** on local computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`.
+  - **Map a port** on host computer to a port inside the container by using the flag `-p [port_on_computer]:[port_inside_container]`. *For example:* mapping port 8080 on host computer to port 80 inside the container.
 
-    *For example:* `docker run -p 8080:80 nginx` maps port 8080 on local computer to port 80 inside the container.
-- **List running** Docker containers: `docker ps`.
+    ```bash
+    docker run -p 8080:80 nginx
+    ```
+- **List running** Docker containers:
+
+  ```bash
+  docker ps
+  ```
   - `ps` stands for **Process Status** in Unix/Linux.
-  - List all containers, **including stopped** ones: `docker ps -a`.
-  - List **only stopped** containers: `docker ps -a --filter "status=exited"`.
-  - Display **only** container IDs: `docker ps -q`. This **is useful when** passed into a subcommand. *For example,* to **stop all running** containers: `docker stop $(docker ps -q)`.
-- **Stop a container:** `docker stop [container_name]` or `docker kill [container_name]`. Both these two commands stop the container. The **main difference** is **how the container is stopped.**
+  - List all containers, **including stopped** ones:
+
+    ```bash
+    docker ps -a
+    ```
+  - List **only stopped** containers:
+
+    ```bash
+    docker ps -a --filter "status=exited"
+    ```
+  - Display **only** container IDs: `docker ps -q`.
+
+    ```bash
+    docker ps -q
+    ```
+    This **is useful when** passed into a subcommand. *For example,* to **stop all running** containers:
+
+    ```bash
+    docker stop $(docker ps -q)
+    ```
+- **Stop a container:** `docker stop [container_name]` or `docker kill [container_name]`. *For example:*
+
+  ```bash
+  docker stop web_server
+  docker kill web_server
+  ```
+  Both those two commands stop the container. The **main difference** is **how the container is stopped.**
   - `docker kill`: **Immediately** sends a signal to stop the container, by defaul `SIGKILL`. The **danger** here is that we might **lose some content** that is in memory and the process, the container **doesn't have time** to persist this content to disk.
   - `docker stop`: **gracefully stops** the container, **giving** the application time to shut down. Docker **sends** `SIGTERM` to the container's main process **and waits for a grace period** (10 seconds by default on Linux containers). If the process hasn't stopped by then, Docker send `SIGKILL`. This gives the application a chance to:
     - finish ongoing work,
@@ -231,11 +268,25 @@ block
     - use `docker stop` for normal operations.
     - use `docker kill` when we need to terminate a container immediately.
 - **Remove a container:**
-  - remove a **stopped container:** `docker rm [container_name]`.
-  - list **only stopped** containers: `docker ps -a --filter "status=exited"`.
-  - **force-remove** a container, stopping it if necessary: `docker rm -f [container_name]`.
-  - **remove all stopped** containers after confirmation: `docker container prune`.
+  - remove a **stopped container:** `docker rm [container_name]`. *For example:*
 
+    ```bash
+    docker rm web_server
+    ```
+  - list **only stopped** containers:
+
+    ```bash
+    docker ps -a --filter "status=exited"
+    ```
+  - **force-remove** a container, stopping it if necessary: `docker rm -f [container_name]`. *For example:*
+
+    ```bash
+    docker rm -f web_server
+    ```
+  - **remove all stopped** containers after confirmation:
+    ```bash
+    docker container prune
+    ```
   It's a **good practice** to **clean up containers** that is **no longer used.**
   - **Organization:** avoid accumulating lots of old containers.
   - **Disk space:** containers can store writable-layer data and logs that consume disk space.
@@ -243,55 +294,76 @@ block
 
 ### Container Lifecyle
 1. **Initializing** a container
-   - **Create** a container: `docker create --name [container_name] [image_name:tag]`. The container **is created** but is **not running** yet.
+   - **Create** a container from an image: `docker create --name [container_name] [image_name:tag]`. The container **is created** but is **not running** yet. *For example:*
 
-      *For example:* `docker create --name web_server -p 8080:80 nginx`.
-   - **Start** a container: `docker start [container_name]`.
+      ```bash
+      docker create --name web_server -p 8080:80 nginx
+      ```
+   - **Start** a container: `docker start [container_name]`. *For example:*
 
-      *For example:* `docker start web_server`.
-   - **Create and start** a container: `docker run -d --name [container_name] [image_name:tag]`.
+      ```bash
+      docker start web_server
+      ```
+   - **Create and start** a container from an image: `docker run -d --name [container_name] [image_name:tag]`. *For example:*
 
-      *For example:* `docker run -d --name web_server -p 8080:80 nginx`.
+      ```bash
+      docker run -d --name web_server -p 8080:80 nginx
+      ```
 2. Container **running**
-   - **Display the logs** produced by a container: `docker logs [container_name]`. It's **often used when** a container fails to start properly or an application reports errors.
+   - **Display the logs** produced by a container: `docker logs [container_name]`. It's **often used when** a container fails to start properly or an application reports errors. *For example:*
 
-      *For example:* `docker logs web_server`.
-
+      ```bash
+      docker logs webs_server
+      ```
       **Useful flags:**
-      - `-f` (`--follow`): **continuously displays** new log output, like **watching a live log.**
+      - `-f` (`--follow`): **continuously displays** new log output, like **watching a live log.** *For example:*
 
-        *For example:* `docker logs -f web_server`.
-      - `--tail`: **displays the last** `n` lines.
+        ```bash
+        docker logs -f web_server
+        ```
+      - `--tail`: **displays the last** `n` lines. *For example:*
 
-        *For example:* `docker logs --tail 100 web_server`.
-   - **Display detailed configuration** and **state information** about a **container or image** in JSON format: `docker inspect [container_name] / [image_name:tag]`. This command is **often used when** we need to check a container's status, IP address, port mappings, environment variables, etc.
+        ```bash
+        docker logs --tail 20 web_server
+        ```
+   - **Display detailed configuration** and **state information** about a **container or image** in JSON format: `docker inspect [container_name] / [image_name:tag]`. This command is **often used when** we need to check a container's status, IP address, port mappings, environment variables, etc. *For example:*
 
-      *For example:* `docker inspect web_server`, `docker inspect nginx:latest`.
-
+      ```bash
+      docker inspect web_server
+      docker inspect nginx:latest
+      ```
       We can **inspect specific properties** using the flag `--format`. *For example:*
 
-      `docker inspect --format "{{.State.Status}}" web_server`.
+      ```bash
+      docker inspect --format "{{.State.Status}}" web_server
+      docker inspect --format "{{json .NetworkSettings.Ports}}" web_server
+      ```
+    - **Execute** a command **inside** an **already-running** container, **without** creating another container: `docker exec [container_name] [command]`. It is **often used when** we want to inspect files, check processes, or execute diagnostic commands **inside a running** container. *For example:*
 
-      `docker inspect --format "{{json .NetworkSettings.Ports}}" web_server`.
-    - **Execute** a command **inside** an **already-running** container, **without** creating another container: `docker exec [container_name] [command]`. It is **often used when** we want to inspect files, check processes, or execute diagnostic commands **inside a running** container.
+      ```bash
+      docker exec web_server nginx -v
+      ```
+      Using flags `-it` to **open a shell** inside the `web_server` Nginx container **and keep** its standard **input open.**
 
-      *For example:* `docker exec web_server nginx -v`.
-
-      `docker exec -it web_server bash`: **open a shell** inside the `web_server` Nginx container.
+      ```bash
+      docker exec -it web_server bash
+      ```
       - `-i`: **keep standard input** open.
       - `-t`: **allocate** a terminal.
       - `bash`: the shell to run inside the container.
-    - **Freeze** a container: `docker pause [container_name]`.
+    - **Freeze** a container: `docker pause [container_name]`. *For example:*
 
-      *For example:* `docker pause web_server`.
-
+      ```bash
+      docker pause web_server
+      ```
       Docker **suspends all processes** in the container. They **stop executing until** the container is unpaused.
       - The container still exists. Its **status becomes** `Paused`.
       - Its configuration and filesystem **remain intact.**
-    - **Resume** a container: `docker unpause [container_name]`.
+    - **Resume** a container: `docker unpause [container_name]`. *For example:*
 
-      *For example:* `docker unpause web_server`.
-
+      ```bash
+      docker unpause web_server
+      ```
       Docker **resumes the paused** processes. They **continue from** where they were suspended, rather than starting over.
     - **Stop** a container:
       - **Gracefully** stop the main process: `docker stop [container_name]`.
@@ -322,7 +394,7 @@ block
    **Useful commands:**
    - **Define** the restart policy by using the `--restart` flag **when creating** a container **from** an image. *For example:*
 
-      ```cmd
+      ```bash
       # use no restart policy
       docker run -d --name web_server nginx
 
@@ -338,12 +410,12 @@ block
       `on-failure:5` defines that Docker **retries** the container **up to five times** if its main process **exits with** a **non-zero** code.
    - **Check the configured** restart policy of a container by using the `--format` flag of the `docker inspect` command. *For example:*
 
-      ```cmd
+      ```bash
       docker inspect --format "{{.HostConfig.RestartPolicy}} web_server"
       ```
    - **Update the configured** restart policy of a container by using the `--restart` flag of the `docker update` command. *For example:*
 
-      ```cmd
+      ```bash
       docker update --restart always web_server
       ```
 
@@ -351,7 +423,7 @@ block
 
 1. **Create a project directory**
 
-   ```cmd
+   ```bash
    mkdir hello-docker
    cd hello-docker
    ```
@@ -400,12 +472,12 @@ block
 
    From **inside the project directory** `hello-docker`, run `docker build`.
 
-   ```cmd
-   docker build -t hello-docker:latest .
+   ```bash
+   docker build -t hello-docker:1.0 .
    ```
    Let's break down the command.
    - `docker build`: builds an **image from** a Dockerfile.
-   - `-t hello-docker:latest`: **names** the image `hello-docker` and **assigns** it the **tag** `latest`.
+   - `-t hello-docker:1.0`: **names** the image `hello-docker` and **assigns** it the **tag** `1.0`.
    - `.`: uses the current directory as the **build context,** the set of files Docker can access for instructions such as `COPY`.
 
       Docker **will download** the Python base image **if** it **isn't already available** locally, the execute the `Dockerfile` instructions.
@@ -415,15 +487,21 @@ block
 6. **Run a container** from the created image
 
    Run a container from the image that we've just created to confirm that it prints `Hello from Docker!`.
-   ```cmd
+
+   ```bash
    docker run --name hello_docker hello-docker:1.0
+   ```
+   **In development,** the `--rm` flag **is often used when** testing new images. It **automatically removes** the container when it exits, preventing leftover container clutter.
+
+   ```bash
+   docker run --rm hello-docker:1.0
    ```
 
 ### Mounting a Local Directory
-- There're two approaches to mount a directory on host computer into a Docker container, using `-v` (Docker volume) or `--mount` (Bind mount) with `docker run`.
+- There're **two approaches to mount a directory** on host computer into a Docker container, using `-v` (Docker volume) or `--mount` (Bind mount) with `docker run`.
   - Using **Docker volume:** `docker run -v [path_to_host_dir]:[path_to_container_dir] [image_name:tag]`. *For example:*
 
-    ```cmd
+    ```bash
     docker run -d --name web_server -p 80:80 -v "${PWD}\site:/usr/share/nginx/html" nginx
     ```
     - `PWD`: stands for **Print Working Directory.**
@@ -432,7 +510,7 @@ block
     - `$(...)`: **evaluate** an expression **and substitute** its result as a string. *For example:* `$(docker ps -q)`.
   - Using **bind mount:** `docker run --mount "type=bind,source=[path_to_host_dir],target=[path_to_container_dir]" [image_name:tag]`. *For example:*
 
-    ```cmd
+    ```bash
     docker run --rm -it --mount "type=bind,source=${PWD}\hello-docker,target=/app" python:3.12-slim bash
     ```
     - `--rm`: **Removes** the container **when it exits.** This is useful for testing.
@@ -468,7 +546,7 @@ Key **benefits over manually** management containers is file-based configuration
 1. **Check Docker Compose:** `docker compose version`
 2. **Create the project:**
 
-   ```cmd
+   ```bash
    mkdir compose-nginx
    cp -r site compose-nginx
    cd compose-nginx
@@ -484,13 +562,13 @@ Key **benefits over manually** management containers is file-based configuration
 3. **Create** `compose.yaml`: create a file named `compose.yaml` in the `compose-nginx` directory with the content below.
 
     This Compose project provides two services:
-    - a Python application from the `hello-docker:latest` image, built in [Build Your First Docker Image](#build-your-first-docker-image).
+    - a Python application from the `hello-docker:1.0` image, built in [Build Your First Docker Image](#build-your-first-docker-image).
     - an Nginx webserver.
 
     ```yaml
     services:
       web:
-        image: nginx:latest
+        image: nginx:1.31.6
         ports:
           - "80:80"
         volumes:
@@ -499,27 +577,47 @@ Key **benefits over manually** management containers is file-based configuration
             target: /usr/share/nginx/html
             read_only: true
       python-app:
-        image: hello-docker:latest
+        image: hello-docker:1.0
     ```
    - `services`: defines the services in our application.
    - `web`, `python-app`: the name of services. **We choose it.**
-   - `image`: uses the `nginx:latest` and `hello-docker:latest` image.
+   - `image`: uses the `nginx:1.31.6` and `hello-docker:1.0` images.
    - `ports`: maps host port `80` to the container port `80`.
    - `volumes`: mounts the local `site` directory into the container.
    - `read_only: true`: prevents the container from modifying the mounted files.
    - The `source: ./site` path **is relative to** the Compose file's directory.
-4. **Start** the application: run the command `docker compose up -d` from the **directory containing** `compose.yaml`.
-5. **Manage** the application: Here are the primary commands for managing the application:
-   - `docker compose ps`: list the project's containers and their status.
-   - `docker compose logs`: view the service logs. *For examples:* to view output from the Python app:
+4. **Start** the application: from the **directory containing** `compose.yaml` run the command.
 
-      ```cmd
+   ```bash
+    docker compose up -d
+    ```
+5. **Manage** the application: Here are the primary commands for managing the application:
+   - **List** the project's containers and their status.
+
+      ```bash
+      docker compose ps
+      ```
+   - **View** the service logs: `docker compose logs`. *For examples:* to view output from the Python app:
+
+      ```bash
       docker compose logs python-app
       ```
       Compose **determines** which **project to target** from the **current directory,** the Compose file options, and potentially the project name. It means that `docker compose logs` **displays only** logs of the project in current directory.
-   - `docker compose stop`: stop the services without removing their containers.
-   - `docker compose start`: start previously stopped containers.
-   - `docker compose down`: **stop and remove** the project's containers and default network.
+   - **Stop** the services without removing their containers.
+
+      ```bash
+      docker compose stop
+      ```
+   - **Start** previously stopped containers.
+
+      ```bash
+      docker compose start
+      ```
+   - **Stop and remove** the project's containers and default network.
+
+      ```bash
+      docker compose down
+      ```
 
 ### Dockerfile vs. Compose file
 | `Dockerfile`                                                 | `compose.yaml`                             |
@@ -577,11 +675,12 @@ For a Python application, we can **use both:**
   - **Public registries:** open to everyone and host a **vast collection of images** from various sources. [Docker Hub](https://hub.docker.com) is the most prominent example.
   - **Private registries:** used for storing **proprietary or sensitive images** and offer granular **access control.**
 
-### Version pinning
-- The `latest` tag is a **moving target,** meaning it **can point to** a different version of the image **every time** we pull it, which **introduce instability.**
+### Importance of Versioning
+- It's **recommended to** actually **pin the version** of whatever image we are working with because this gives a **high degree of stability** since we are always using the same image.
+- The `latest` tag actually **changes** the underlying image **as** new images are published. This would actually **be a tag** that **is continuously evolving.**
+- The `latest` tag is a **moving target.** Using it we **can suddenly run into** a new major release of the image, which **might bring breaking changes** to our application.
 - Pinning to a **specific version** tag **ensures** that the production environment remains **consistent and predictable** across deployments.
-- It's **recommended to** actually **pin the version of the images** we are using because this gives a **high degree of stability** since we are always using the same image.
-- We **should update** the pinned version **regularly.** We should **not pin** it once **and** then just **forget** about it because new vulnerability are discovered.
+- We **should update** the pinned version **regularly** rather than setting them once and forgetting them, **as new security vulnerability** are constantly discovered.
 - **Regularly updating** pinned versions **allows** us to **incorporate security patches and fixes** while still **maintaining the stability** of the environment. It strikes the **perfect balance** between security and reliablity.
 
 
