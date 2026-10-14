@@ -17,6 +17,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Build Your First Compose Project](#build-your-first-compose-project)
   - [Container Registries](#container-registries)
   - [Importance of Versioning](#importance-of-versioning)
+  - [Managing Docker Images](#managing-docker-images)
 - [Reference](#reference)
 
 
@@ -189,7 +190,7 @@ block
   ```bash
   docker pull nginx
   ```
-- **Note:** when **no image tag** is explicitly specified, Docker **defaults to** using `latest` automatically.
+- **Important:** when **no image tag** is explicitly specified, Docker **defaults to** using `latest` automatically.
 - **List images** stored locally (in Image Cache):
 
   ```bash
@@ -682,6 +683,34 @@ For a Python application, we can **use both:**
 - Pinning to a **specific version** tag **ensures** that the production environment remains **consistent and predictable** across deployments.
 - We **should update** the pinned version **regularly** rather than setting them once and forgetting them, **as new security vulnerability** are constantly discovered.
 - **Regularly updating** pinned versions **allows** us to **incorporate security patches and fixes** while still **maintaining the stability** of the environment. It strikes the **perfect balance** between security and reliablity.
+
+### Managing Docker Images
+- A Docker image can have multiple `tag`s. Different tags may **share the same** `digest`, which **indicates** that they **point to the same** underlying image.
+- Once registered on [Docker Hub](https://hub.docker.com), **sign in via CLI** with `docker login -u [username]` and enter a **Personal Access Token (PAT)** as the password.
+- The **size of the images** is largely **depends on** how many **dependencies are installed** as well as the base image used. The smaller is normally better as long as it provides all the necessary tooling to run our application.
+- **Create a tag image** that **refers to** a source image: `docker tag [source_image:tag] [target_image:tag]`. *For example:* creating the `hello-docker:latest` tag image that refers to the `hello-docker:1.0` image.
+
+  ```bash
+  docker tag hello-docker:1.0 hello-docker
+  ```
+  **Important:** Tagging **doesn't rebuild or duplicate** the image. Both names **refer to the same** local image.
+- **Remove image(s):** `docker rmi [image_name:tag]`. *For example:* remove all images
+
+  ```bash
+  docker rmi $(docker images -q)
+  ```
+- **Push** an images **to** [Docker Hub](https://hub.docker.com):
+  - **Sign in** to [Docker Hub](https://hub.docker.com) from CLI.
+  - **Tag** the **local image.** [Docker Hub](https://hub.docker.com) **requires** the image names to **include** the target **repository name,** which is typically the [Docker Hub](https://hub.docker.com) username. The image should be follow this format `[repository_name]/[image_name]:[tag]`. *For example:*
+
+    ```bash
+    docker tag hello-docker:1.0 vuanhtuan1012/hello-docker:1.0
+    ```
+  - **Push the image:** `docker push [repository_name]/[image_name]:[tag]`. *For example:*
+
+    ```bash
+    docker push vuanhtuan1012/hello-docker:1.0
+    ```
 
 
 ## Reference
