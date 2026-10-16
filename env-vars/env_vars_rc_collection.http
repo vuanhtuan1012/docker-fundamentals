@@ -1,0 +1,10 @@
+# Global variables
+@port=3000
+@base_url = http://localhost:{{port}}
+
+
+### Check the health of the API
+GET {{base_url}}/health
+
+### Get the root endpoint
+GET {{base_url}}/

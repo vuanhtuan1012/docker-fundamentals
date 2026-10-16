@@ -30,6 +30,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Dockerizing the Users App](#dockerizing-the-users-app)
 - [In-Depth Look at Docker Images](#in-depth-look-at-docker-images)
   - [Exploring Build Contexts](#exploring-build-contexts)
+  - [Introduction to Environment Variables](#introduction-to-environment-variables)
 - [Reference](#reference)
 
 
@@ -925,6 +926,27 @@ In this project, we **create** an users management API using [Node.js](https://n
 - `sh` vs. `bash`: both are **Unix shells** - programs that let us type commands and execute them inside a container. The **main difference** is:
   - `sh` is a shell interface/name, **not necessarily** one particular program.
   - `bash` **provides additional** features and **is not installed in every** Docker image.
+
+### Introduction to Environment Variables
+- **Seting** environment variables:
+  - **inside the image:** use the instruction `ENV [var_name]=[value]` in `Dockerfile`. *For example:*
+
+    `ENV PORT=3001`: sets an environment variable named `PORT` to the value `3001` **inside** the image.
+  - **via CLI:** use the flag `-e` or `--env` of the command `docker run` when running a container. *For example:*
+
+      ```bash
+      docker run -e PORT=8000 -e APP_NAME="Env Variables" env-vars:1.0
+      ```
+  - **via files:** create a file containing key-value pairs, then load it when running a container using the `--env-file` flag. *For example:*
+
+      ```bash
+      docker run --env-file .env.prod env-vars:1.0
+      ```
+    This approach keeps the `docker run` command clean and maintainable when setting multiple environment variables.
+- **When** the same environment variable is defined **in multiple places,** the value **explicitly provided at container runtime** takes precedence over the value in the image. The **general precedence is:**
+  1. `docker run -e`: **explicit runtime** value.
+  2. `docker run --env-file`: value **loaded from the runtime** environment file.
+  3. `Dockerfile`'s instruction `ENV`: default value **stored in the image.**
 
 
 ## Reference
