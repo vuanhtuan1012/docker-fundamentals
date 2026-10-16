@@ -28,6 +28,8 @@ This repository is a structured, comprehensive collection of notes designed base
   - [`npm` Scripts](#npm-scripts)
   - [Test the Users App](#test-the-users-app)
   - [Dockerizing the Users App](#dockerizing-the-users-app)
+- [In-Depth Look at Docker Images](#in-depth-look-at-docker-images)
+  - [Exploring Build Contexts](#exploring-build-contexts)
 - [Reference](#reference)
 
 
@@ -362,6 +364,8 @@ block
       - `-i`: **keep standard input** open.
       - `-t`: **allocate** a terminal.
       - `bash`: the shell to run inside the container.
+
+        **Important:** `bash` is **not installed in every** Docker image, `sh` is.
     - **Freeze** a container: `docker pause [container_name]`. *For example:*
 
       ```bash
@@ -897,7 +901,30 @@ In this project, we **create** an users management API using [Node.js](https://n
 - `RUN` vs `CMD`:
   - `RUN`: executes a command **when building** the image.
   - `CMD`: specifies the default command to **execute when starting** a container.
-- `.dockerignore`: tells Docker **which** files and directories **to exclude** from the build context **when** running `docker build`. It **works similarly** to `.gitignore`, but it controls which files Docker sends to the builder for the build.
+- `.dockerignore`: tells Docker **which** files and directories **to exclude** from the build context **when** running `docker build`.
+
+  It **works similarly** to `.gitignore`, but it controls which files Docker sends to the builder for the build.
+
+
+## In-Depth Look at Docker Images
+
+### Exploring Build Contexts
+- The build context **is the set of files and directories** that Docker makes available to the builder when building an image.
+- The **final argument** (`.` in most case) to `docker build` **specifies** the context.
+- The build context **matters for three** main reason:
+  - **File access:** `COPY` **can copy files from** the build context, it **cannot arbitrarily copy** files from anywhere on our computer.
+  - **Build performance:** a large context **can take longer** to transfer to the builder. `.dockerignore` **excludes unnecessary** files.
+  - **Security:** excluding secrets and unrelated files **reduces the risk** of accidentally including them in the build context or copying them into the image.
+- `docker history [image_tag]`: displays the **build history** of an image, **including the instructions** associated with its layers and their **reported size.**
+
+  This helps us **understand** which build steps contributed to the image **and identify** potentially large layers.
+- `docker run -it [image_tag] sh`: **creates and starts** a new container, **then opens** an interactive shell (`sh`) **inside** that container.
+  - `-i`: **keeps** standard input open so we can type commands.
+  - `-t`: **allocates** a terminal (`TTY`) for interactive use.
+  - The `-it` makes it **convenient to interact** with the container through terminal.
+- `sh` vs. `bash`: both are Unix shells: programs that let us type commands and execute them inside a container. The main difference is:
+  - `sh` is a shell interface/name, **not necessarily** one particular program.
+  - `bash` **provides additional** features and **is not installed in every** Docker image.
 
 
 ## Reference
