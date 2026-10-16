@@ -922,7 +922,7 @@ In this project, we **create** an users management API using [Node.js](https://n
   - `-i`: **keeps** standard input open so we can type commands.
   - `-t`: **allocates** a terminal (`TTY`) for interactive use.
   - The `-it` makes it **convenient to interact** with the container through terminal.
-- `sh` vs. `bash`: both are Unix shells: programs that let us type commands and execute them inside a container. The main difference is:
+- `sh` vs. `bash`: both are **Unix shells** - programs that let us type commands and execute them inside a container. The **main difference** is:
   - `sh` is a shell interface/name, **not necessarily** one particular program.
   - `bash` **provides additional** features and **is not installed in every** Docker image.
 
