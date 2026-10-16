@@ -818,7 +818,7 @@ In this project, we **create** an users management API using [Node.js](https://n
     └── node_modules/
     ```
     - `package.json` **declares** dependencies, project metadata, and `npm` scripts.
-    - `package-lock.json` **records** the **exact resolved versions **of dependencies and their dependency tree, along with integrity information.
+    - `package-lock.json` **records** the **exact resolved versions** of dependencies and their dependency tree, along with integrity information.
 
     The source code of `app.js` is at [app.js](users-api/app.js).
 
@@ -881,13 +881,19 @@ In this project, we **create** an users management API using [Node.js](https://n
   - `WORKDIR /app`: sets the **working directory** inside the container to `/app`. If this directory does not exist, Docker creates it automatically.
   - `COPY package*.json ./`: **copies** `package.json` and `package-lock.json` to the working directory.
   - `RUN npm ci --omit=dev`: **installs only** the production dependencies of the project, **using the exact versions** recorded in `package-lock.json`.
-  - `COPY . .`: copies files **from** the build context **into** the container's working directory (`/app`). **To prevent unnecessary files** from being copied into the image, **define** a `.dockerignore` file to excludes unwanted paths from the build context.
-  - `EXPOSE 3000` (*optional*): expose the port the app runs on. It **does not publish** the port to the host machine **or make** the application accessible from browsers. It **is mainly documentation** (metadata) about the port the container uses.
+  - `COPY . .`: copies files **from** the build context **into** the container's working directory (`/app`).
+
+    **To prevent unnecessary files** from being copied into the image, **define** a `.dockerignore` file to excludes unwanted paths from the build context.
+  - `EXPOSE 3000` (*optional*): expose the port the app runs on.
+
+    It **does not publish** the port to the host machine **or make** the application accessible from browsers. It **is mainly documentation** (metadata) about the port the container uses.
   - `CMD ["npm", "start"]`: **starts** the application.
 - **Run** the `docker build` command to **build** an image from a Dockerfile.
 - `npm install` vs. `npm ci`:
   - `npm install`: **resolves** dependency versions **and update** `package-lock.json` when necessary.
-  - `npm ci`: performs a **clean**, lockfile-based dependency **installation.** It **requires** an existing lockfile consistent with `package.json`, **removes** the existing `node_modules` directory, **and installs** the locked dependency tree.
+  - `npm ci`: performs a **clean**, lockfile-based dependency **installation.**
+
+    It **requires** an existing lockfile consistent with `package.json`, **removes** the existing `node_modules` directory, **and installs** the locked dependency tree.
 - `RUN` vs `CMD`:
   - `RUN`: executes a command **when building** the image.
   - `CMD`: specifies the default command to **execute when starting** a container.
