@@ -23,6 +23,11 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Managing Docker Images](#managing-docker-images)
   - [Introduction to Dockerfiles](#introduction-to-dockerfiles)
   - [Docker Image Layers](#docker-image-layers)
+- [Containerize an Express App](#containerize-an-express-app)
+  - [Building an Express App](#building-an-express-app)
+  - [`npm` Scripts](#npm-scripts)
+  - [Test the Users App](#test-the-users-app)
+  - [Dockerizing the Users App](#dockerizing-the-users-app)
 - [Reference](#reference)
 
 
@@ -750,7 +755,7 @@ For a Python application, we can **use both:**
   - `WORKDIR` can create a filesystem layer,
   - while `CMD` changes image metadata rather than adding a filesystem layer.
   - The base image itself contains multiple layers.
-- This approach brings:
+- This approach **brings:**
   - **Reusability:** different images can share common layers.
   - **Efficiency:** Docker doesn't need to download or store duplicate copies of shared layers in the same image store.
   - **Build caching:** when appropriate inputs and instructions haven't changed. Docker can reuse cached build results.
@@ -772,6 +777,122 @@ For a Python application, we can **use both:**
   - **Restarting** the same container **preserves** the file.
   - **Removing** the container **deletes** its writable layer and the file.
   - **Creating another** container from the same image **does not** give it that file. For data that must **survive container removal,** [use a Docker volume or a bind mount](#mounting-a-local-directory).
+
+
+## Containerize an Express App
+In this project, we **create** an users management API using [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/), **write** a `Dockerfile` to build an image for the application, and run containers on that built image.
+
+### Building an Express App
+- [Express](https://expressjs.com/) is a **web framework** for [Node.js](https://nodejs.org/) that makes it easier to **create an HTTP server,** define endpoints, and handle requests and responses.
+- We'll **build** a simple **user management application** with six endpoints:
+  - `GET /`: returns a welcome message.
+  - `GET /users`: retrieves all users.
+  - `GET /users/:id`: retrieves a user by their ID.
+  - `POST /users`: creates a user.
+  - `PUT /users/:id`: updates a user by their ID.
+  - `DELETE /users/:id`: deletes a user by their ID.
+- The user model contains **three fields** (`id`, `name`, `email`) and relies on an **in-memory database** for simplicity.
+- The application defaults to **listening on port** `3000`.
+
+1. **Create** the project: creates the project directory `users-api` and initialize it.
+
+    ```bash
+    mkdir users-api
+    cd users-api
+    npm init -y
+    ```
+   The command `npm init -y` creates a `package.json` file, which stores the project's metadata and dependencies.
+2. **Install** the packages: installs the `express` package.
+
+    ```bash
+    npm install express
+    ```
+3. **Create** `app.js`: creates a file named `app.js` in the project directory. The project structure should look like this:
+
+    ```text
+    users-api/
+    │
+    ├── app.js
+    ├── package.json
+    ├── package-lock.json
+    └── node_modules/
+    ```
+    - `package.json` **declares** dependencies, project metadata, and `npm` scripts.
+    - `package-lock.json` **records** the **exact resolved versions **of dependencies and their dependency tree, along with integrity information.
+
+    The source code of `app.js` is at [app.js](users-api/app.js).
+
+### `npm` Scripts
+- In `package.json`, the following code defines a **custome npm script:**
+
+    ```json
+    "scripts": {
+      "start": "node app.js"
+    }
+    ```
+    It means that **when** we run `npm start` in terminal, `npm` **executes** the command `node app.js` to start our [Express](https://expressjs.com/) application.
+- `scripts`: contains commands that we can run through `npm`.
+- `start`: the name of the script.
+- `node app.js`: the shell command `npm` executes when we run that script.
+- We can **define multiple scripts** in the same `scripts` objects. *For example:*
+
+    ```json
+    "scripts": {
+      "start": "node app.js",
+      "dev": "node --watch app.js",
+      "test": "node --test"
+    }
+    ```
+    Then we can run:
+    - `npm start`: start the application
+    - `npm run dev`: start the application with [Node.js](https://nodejs.org/) watch mode, which restarts it when files change.
+    - `npm test`: run tests using [Node.js](https://nodejs.org/)'s built-in test runtime.
+- `npm` scripts **provide convenience and consistency** across development environments. Instead of memorizing long or complex CLI commands, developers can execute a short, standardized script.
+
+### Test the Users App
+- To test the endpoints, use any REST client (e.g., [Postman](https://www.postman.com/), [Insomnia](https://insomnia.rest/), `curl`, or the VS Code [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client)). This guide demonstrates examples **using** the VS Code [REST Client extension](https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
+- Request definitions are located in [users_api_rc_collection.http](users-api/users_api_rc_collection.http) file.
+
+### Dockerizing the Users App
+- **Create** a `Dockerfile` in the **project directory** with these **instructions to containerize** the application:
+
+    ```dockerfile
+    FROM node:26.12.0-alpine3.24
+
+    # Set working directory
+    WORKDIR /app
+
+    # Copy package.json and package-lock.json
+    COPY package*.json ./
+
+    # Install dependencies
+    RUN npm ci --omit=dev
+
+    # Copy application files
+    COPY . .
+
+    # Expose the port the app runs on
+    EXPOSE 3000
+
+    # Start the application
+    CMD ["npm", "start"]
+    ```
+  - `FROM`: defines the **base image.**
+  - `WORKDIR /app`: sets the **working directory** inside the container to `/app`. If this directory does not exist, Docker creates it automatically.
+  - `COPY package*.json ./`: **copies** `package.json` and `package-lock.json` to the working directory.
+  - `RUN npm ci --omit=dev`: **installs only** the production dependencies of the project, **using the exact versions** recorded in `package-lock.json`.
+  - `COPY . .`: copies files **from** the build context **into** the container's working directory (`/app`). **To prevent unnecessary files** from being copied into the image, **define** a `.dockerignore` file to excludes unwanted paths from the build context.
+  - `EXPOSE 3000` (*optional*): expose the port the app runs on. It **does not publish** the port to the host machine **or make** the application accessible from browsers. It **is mainly documentation** (metadata) about the port the container uses.
+  - `CMD ["npm", "start"]`: **starts** the application.
+- **Run** the `docker build` command to **build** an image from a Dockerfile.
+- `npm install` vs. `npm ci`:
+  - `npm install`: **resolves** dependency versions **and update** `package-lock.json` when necessary.
+  - `npm ci`: performs a **clean**, lockfile-based dependency **installation.** It **requires** an existing lockfile consistent with `package.json`, **removes** the existing `node_modules` directory, **and installs** the locked dependency tree.
+- `RUN` vs `CMD`:
+  - `RUN`: executes a command **when building** the image.
+  - `CMD`: specifies the default command to **execute when starting** a container.
+- `.dockerignore`: tells Docker **which** files and directories **to exclude** from the build context **when** running `docker build`. It **works similarly** to `.gitignore`, but it controls which files Docker sends to the builder for the build.
+
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
