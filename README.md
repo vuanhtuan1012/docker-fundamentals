@@ -31,6 +31,7 @@ This repository is a structured, comprehensive collection of notes designed base
 - [In-Depth Look at Docker Images](#in-depth-look-at-docker-images)
   - [Exploring Build Contexts](#exploring-build-contexts)
   - [Introduction to Environment Variables](#introduction-to-environment-variables)
+  - [`CMD` vs. `ENTRYPOINT`](#cmd-vs-entrypoint)
 - [Reference](#reference)
 
 
@@ -947,6 +948,71 @@ In this project, we **create** an users management API using [Node.js](https://n
   1. `docker run -e`: **explicit runtime** value.
   2. `docker run --env-file`: value **loaded from the runtime** environment file.
   3. `Dockerfile`'s instruction `ENV`: default value **stored in the image.**
+
+### `CMD` vs. `ENTRYPOINT`
+- Both `CMD` and `ENTRYPOINT` are `Dockerfile` instructions that **define** what runs **when starting a container.** The key difference is:
+  - `ENTRYPOINT` defines **the executable** that the container runs.
+  - `CMD` defines the **default command** or **arguments supplied** to that executable.
+- `ENTRYPOINT`: is **designed to** establish the **main executable** or **fixed command** for the container. Consider this `Dockerfile`:
+
+    ```dockerfile
+    FROM alpine:3.24.2
+    ENTRYPOINT ["echo", "Hello from ENTRYPOINT!"]
+    ```
+  - **When run** its image `docker run --rm entrypoint`, Docker executes `echo "Hello from ENTRYPOINT!"`.
+  - If we pass **additional arguments,** it will **be appended to** the `ENTRYPOINT`. *For example:* running
+
+      ```bash
+      docker run --rm entrypoint "Hello from terminal!"
+      ```
+    Docker will execute:
+
+      ```bash
+      echo "Hello from ENTRYPOINT!" "Hello from terminal!"
+      ```
+- `CMD`: provides the **default command** and **its arguments.** Consider this `Dockerfile`:
+
+    ```dockerfile
+    FROM alpine:3.24.2
+    CMD ["echo", "Hello from CMD!"]
+    ```
+  - **When run** its image `docker run --rm cmd`, Docker executes `echo "Hello from CMD!"`.
+  - If we pass an **extra command,** it will **replace the default** `CMD` command. *For example:* running
+
+    ```bash
+      docker run --rm cmd echo "Hello from terminal!"
+      ```
+    Docker will execute:
+
+      ```bash
+      echo "Hello from terminal!"
+      ```
+- **When** both `CMD` and `ENTRYPOINT` **are specified,**
+  - `ENTRYPOINT` **defines the executable,**
+  - `CMD` **provides** the **default arguments** to `ENTRYPOINT`.
+
+  Consider this `Dockerfile`:
+    ```dockerfile
+    FROM alpine:3.24.2
+    ENTRYPOINT ["echo"]
+    CMD ["Hello from ENTRYPOINT CMD!"]
+    ```
+  - **When run** its image `docker run --rm entrypoint-cmd`, Docker executes `echo "Hello from ENTRYPOINT CMD!"`.
+  - If we pass **additional arguments,** it **overrides the default** `CMD` arguments, and **are passed directly to** the `ENTRYPOINT` command. *For example:* running
+
+    ```bash
+      docker run --rm entrypoint-cmd echo "Hello from terminal!"
+      ```
+    Docker will execute:
+
+      ```bash
+      echo "echo" "Hello from terminal!"
+      ```
+    Because `ENTRYPOINT` is defined in the `Dockerfile`, "echo" and "Hello from terminal!" are interpreted as arguments.
+- **Rule of thumb:**
+  - `ENTRYPOINT` defines the **executable,** `CMD` defines the **default.**
+  - Use `CMD` **alone when** we simply **want to define** the default command **and allow users** to replace it.
+  - Use `ENTRYPOINT` **with** `CMD` when the image **is intended to** behave like a dedicated **executable or tool,** and we want users to **pass arguments to** that tool.
 
 
 ## Reference

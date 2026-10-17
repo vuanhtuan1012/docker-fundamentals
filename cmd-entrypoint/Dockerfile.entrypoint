@@ -1,0 +1,10 @@
+# This Dockerfile is used to demonstrate the difference between CMD and ENTRYPOINT instructions in Docker.
+# The ENTRYPOINT instruction sets the command that will always be executed when the container starts,
+# while the CMD instruction provides the default command or arguments for the ENTRYPOINT command.
+
+# In this case, the ENTRYPOINT is set to `echo "Hello from ENTRYPOINT!"`,
+# When you run this container, it will always execute the ENTRYPOINT command,
+# and if you provide additional arguments, they will be appended to the ENTRYPOINT command.
+
+FROM alpine:3.24.2
+ENTRYPOINT ["echo", "Hello from ENTRYPOINT!"]
