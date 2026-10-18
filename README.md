@@ -33,6 +33,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Introduction to Environment Variables](#introduction-to-environment-variables)
   - [`CMD` vs. `ENTRYPOINT`](#cmd-vs-entrypoint)
   - [Introduction to Distroless Images](#introduction-to-distroless-images)
+  - [Introduction to Multi-stage Dockerfiles](#introduction-to-multi-stage-dockerfiles)
 - [Reference](#reference)
 
 
@@ -787,7 +788,7 @@ For a Python application, we can **use both:**
 
 
 ## Containerize an Express App
-In this project, we **create** an users management API using [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/), **write** a `Dockerfile` to build an image for the application, and run containers on that built image.
+In this project, we **create** an user management API using [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/), **write** a `Dockerfile` to build an image for the application, and run containers on that built image.
 
 ### Building an Express App
 - [Express](https://expressjs.com/) is a **web framework** for [Node.js](https://nodejs.org/) that makes it easier to **create an HTTP server,** define endpoints, and handle requests and responses.
@@ -1047,11 +1048,41 @@ In this project, we **create** an users management API using [Node.js](https://n
     - **Distroless base image:** instead of pulling a standard Node.js image from [Docker Hub](https://hub.docker.com), we **pull a distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
     - **Simplified** `CMD`: The `CMD` instruction **only specifies** `app.js` because the distroless image **already sets** `node` as its default `ENTRYPOINT`.
 - **Recommendation:**
-  - **For development:** use standard base image.
-  - **For production:** use a distroless runtime after the application builds and runs reliably.
+  - **For development:** use **standard** base image.
+  - **For production:** use a **distroless** runtime **after** the application builds and runs **reliably.**
 
   The **core idea** is simple: **build** with the **tools we need,** but **deploy only** the runtime components **the application needs.**
 
+### Introduction to Multi-stage Dockerfiles
+- Creating an **application image** typically involves **two phases:** build and run.
+  - The **build phase** often **requires a full base image** containing all necessary build tools and dependencies.
+  - In the **run phase,** we can **leverage a distroless image** to minimize and create a lean final image size.
+- **Multi-stage builds** enable us to **use multiple** `FROM` instructions **within a single** `Dockerfile`. This allows us to **divide** the build process **into distinct stages.**
+- A **common pattern** for using a distroless image is a **multi-stage build:**
+  - use a **standard base image to** install dependencies and compile the application.
+  - **copy only** the **compiled artifacts** and **runtime dependencies** into a **clean distroless image** for execution.
+- **Build** an image using a **multi-stage build:**
+  - We'll build a **Docker image for** the user management **application created** in the [Build an Express app](#building-an-express-app).
+  - The `Dockerfile` use **two-stage build:**
+    - **First stage:** installs application dependencies. **The** `AS` keyword of the `FROM` instruction **names** this stage `builder` for future reference.
+    - **Second stage:** creates a minimal **runtime image** using a distroless base. **The** `--from` flag in the `COPY` instruction **copies** `node_moudles` directly **from** the `builder` stage.
+
+    ```dockerfile
+    # first stage: install dependencies
+    FROM node:26.12.0-alpine3.24 AS builder
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm ci --omit=dev
+
+    # second stage: create a minimal image using distroless
+    FROM gcr.io/distroless/nodejs26
+    WORKDIR /app
+    COPY --from=builder /app/node_modules ./node_modules
+    COPY app.js .
+
+    # run the application using the distroless Node.js runtime
+    CMD ["app.js"]
+    ```
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
