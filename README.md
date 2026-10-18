@@ -32,6 +32,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Exploring Build Contexts](#exploring-build-contexts)
   - [Introduction to Environment Variables](#introduction-to-environment-variables)
   - [`CMD` vs. `ENTRYPOINT`](#cmd-vs-entrypoint)
+  - [Introduction to Distroless Images](#introduction-to-distroless-images)
 - [Reference](#reference)
 
 
@@ -1013,6 +1014,43 @@ In this project, we **create** an users management API using [Node.js](https://n
   - `ENTRYPOINT` defines the **executable,** `CMD` defines the **default.**
   - Use `CMD` **alone when** we simply **want to define** the default command **and allow users** to replace it.
   - Use `ENTRYPOINT` **with** `CMD` when the image **is intended to** behave like a dedicated **executable or tool,** and we want users to **pass arguments to** that tool.
+
+### Introduction to Distroless Images
+- A distroless image is a **minimal container image** that contains our application and only the runtime components it needs to run, rather than a general-purpose operating system environment.
+
+  The idea is to **leave out unnecessary components** such as package managers, shells, and other standard Linux utilities.
+- Distroless images are **commonly associated with** Google's [Distroless project](https://github.com/GoogleContainerTools/distroless), which **provides minimal base images** for several languages and runtimes.
+- **Advantages** of distroless images:
+  - **smaller image:** it excludes many tools that production applications don't need.
+  - **reduced attack surface:** fewer installed components can mean fewer potential vulnerabilities.
+  - **cleaner security scans:** fewer unrelated packages and CVEs to investigate.
+  - **production-focused:** encourages building an image specifically for running the application.
+- **Limitation** of distroless images:
+  - **No ordinary shell:** there's no `sh` executable iln the standard image.
+  - **No package manager:** generally, we can't use `apt`, `apk`, or similar tools inside the final image to install packages.
+  - **Debug requires a different approach:** we can use Docker's logs and `inspect` commands, or use the project's special `:debug` image variants.
+- **Build** an image **using a distroless** base image:
+  - Consider a **simple application** `app.js`:
+      ```js
+      'use strict';
+      console.log("Hello from distroless Node.js application!");
+      ```
+  - The Dockerfile below **uses a distroless** base image:
+
+      ```dockerfile
+      FROM gcr.io/distroless/nodejs26
+      WORKDIR /app
+      COPY app.js .
+      CMD ["app.js"]
+      ```
+  - **Key difference:**
+    - **Distroless base image:** instead of pulling a standard Node.js image from [Docker Hub](https://hub.docker.com), we **pull a distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
+    - **Simplified** `CMD`: The `CMD` instruction **only specifies** `app.js` because the distroless image **already sets** `node` as its default `ENTRYPOINT`.
+- **Recommendation:**
+  - **For development:** use standard base image.
+  - **For production:** use a distroless runtime after the application builds and runs reliably.
+
+  The **core idea** is simple: **build** with the **tools we need,** but **deploy only** the runtime components **the application needs.**
 
 
 ## Reference
