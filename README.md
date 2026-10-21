@@ -671,7 +671,7 @@ For a Python application, we can **use both:**
       end
     ```
   - **The base layer:** often a minimal Linux distribution like Alpine, or a more full-fledged one like Ubuntu.
-  - **Runtime enivronment:** specific software (e.g., Python, Node.js) required by the application.
+  - **Runtime enivronment:** specific software (e.g., Python, [Node.js](https://nodejs.org/)) required by the application.
   - **Libraries and dependencies:** all the external code that the application relies on.
   - **Application code:** The application source code or its compiled binaries.
   - **Configuration:** settings for the application and its environment. **Configuration might be** a little bit **trickier to package inside** of the image because **it varies very often** depending on which environment we're running the containers on.
@@ -788,7 +788,7 @@ For a Python application, we can **use both:**
 
 
 ## Containerize an Express App
-In this project, we **create** an user management API using [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/), **write** a `Dockerfile` to build an image for the application, and run containers on that built image.
+In this project, we create a **user management API** using [Node.js](https://nodejs.org/) and [Express](https://expressjs.com/), **write** a `Dockerfile` to build an image for the application, and run containers on that built image.
 
 ### Building an Express App
 - [Express](https://expressjs.com/) is a **web framework** for [Node.js](https://nodejs.org/) that makes it easier to **create an HTTP server,** define endpoints, and handle requests and responses.
@@ -1045,7 +1045,7 @@ In this project, we **create** an user management API using [Node.js](https://no
       CMD ["app.js"]
       ```
   - **Key difference:**
-    - **Distroless base image:** instead of pulling a standard Node.js image from [Docker Hub](https://hub.docker.com), we **pull a distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
+    - **Distroless base image:** instead of pulling a standard [Node.js](https://nodejs.org/) image from [Docker Hub](https://hub.docker.com), we **pull a distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
     - **Simplified** `CMD`: The `CMD` instruction **only specifies** `app.js` because the distroless image **already sets** `node` as its default `ENTRYPOINT`.
 - **Recommendation:**
   - **For development:** use **standard** base image.
