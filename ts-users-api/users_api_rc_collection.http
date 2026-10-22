@@ -1,0 +1,101 @@
+# Global variables
+@base_url = http://localhost:3000
+@userId = 1
+@invalidUserId = -1
+@nonExistentUserId = 999
+
+
+### Test the base URL
+GET {{base_url}}
+
+
+### Retrieve all users
+GET {{base_url}}/users
+
+
+### Retrieve a user by ID
+#### Valid user ID
+GET {{base_url}}/users/{{userId}}
+
+#### Invalid user ID
+GET {{base_url}}/users/{{invalidUserId}}
+
+#### Non-existent user ID
+GET {{base_url}}/users/{{nonExistentUserId}}
+
+
+### Create a new user
+#### Charlie Brown
+POST {{base_url}}/users
+Content-Type: application/json
+
+{
+  "name": "Charlie Brown",
+  "email": "charlie.brown@example.com"
+}
+
+#### Invalid user (missing name)
+POST {{base_url}}/users
+Content-Type: application/json
+
+{
+  "name": " ",
+  "email": "charlie.brown@example.com"
+}
+
+#### Invalid user (missing email)
+POST {{base_url}}/users
+Content-Type: application/json
+
+{
+  "name": "Charlie Brown",
+  "email": " "
+}
+
+
+### Update a user
+#### Valid update for John Doe
+PUT {{base_url}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": "Diana Nguyen",
+  "email": "diana.nguyen@example.com"
+}
+
+#### Invalid user ID
+PUT {{base_url}}/users/{{{{invalidUserId}}}}
+Content-Type: application/json
+
+{}
+
+#### Non-existent user
+PUT {{base_url}}/users/{{nonExistentUserId}}
+Content-Type: application/json
+
+{
+  "name": "Non Existent User",
+  "email": "nonexistent@example.com"
+}
+
+#### Invalid user data (missing name)
+PUT {{base_url}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": " ",
+  "email": "diana.nguyen@example.com"
+}
+
+#### Invalid user data (missing email)
+PUT {{base_url}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": "Diana Nguyen",
+  "email": " "
+}
+
+
+### Delete a user
+DELETE {{base_url}}/users/{{userId}}

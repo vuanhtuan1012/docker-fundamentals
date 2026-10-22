@@ -34,6 +34,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [`CMD` vs. `ENTRYPOINT`](#cmd-vs-entrypoint)
   - [Introduction to Distroless Images](#introduction-to-distroless-images)
   - [Introduction to Multi-stage Dockerfiles](#introduction-to-multi-stage-dockerfiles)
+  - [Adding TypeScript to The Express App](#adding-typescript-to-the-express-app)
 - [Reference](#reference)
 
 
@@ -905,9 +906,11 @@ In this project, we create a **user management API** using [Node.js](https://nod
 - `RUN` vs `CMD`:
   - `RUN`: executes a command **when building** the image.
   - `CMD`: specifies the default command to **execute when starting** a container.
-- `.dockerignore`: tells Docker **which** files and directories **to exclude** from the build context **when** running `docker build`.
+- `.dockerignore`: **functions like** `.gitignore` by **excluding specified** files and directories **from** the Docker build context.
 
-  It **works similarly** to `.gitignore`, but it controls which files Docker sends to the builder for the build.
+  **Without** `.dockerigore`, the entire build context **is sent** to the Docker daemon, **including files never referenced** in `COPY` or `ADD` instructions.
+
+  **While** sending these files **does not automatically copy them into** the final image, a larger build context **slows down** builds and **increase the risk** of accidentially including sensitive files when using `COPY . .`.
 
 
 ## In-Depth Look at Docker Images
@@ -1083,6 +1086,57 @@ In this project, we create a **user management API** using [Node.js](https://nod
     # run the application using the distroless Node.js runtime
     CMD ["app.js"]
     ```
+
+### Adding TypeScript to The Express App
+We'll build a Docker image for the [TypeScript](https://www.typescriptlang.org/) and [Express](https://expressjs.com/) **user management API** located in [/ts-users-api](/ts-users-api/). For an introduction to [TypeScript](https://www.typescriptlang.org/) and detailed documentation on building the user management API, see [Introduction to TypeScript](typescript.md).
+
+Developed by Microsoft, [TypeScript](https://www.typescriptlang.org/) is an open-source, **strongly typed superset** of JavaScript that **provides:**
+  - **IDE Intelligence:** Auto-completion, inline docs, and safe refactoring.
+  - **Living Documentation:** Types explicitly define data structures across the application.
+  - **Runtime Safety:** Compiler checks catch null / undefined errors before execution.
+  - **Scalability:** Compiler alerts prevent breaking changes during team collaboration and refactoring.
+  - **Compatability:** Transpile modern ECMAScript features to older JS runtime targets.
+
+**Deploying** a [TypeScript](https://www.typescriptlang.org/) project to production **involves a two-stage lifecycle:**
+- **Build:** type-check and **transpile** `.ts` into `.js`.
+- **Run:** **execute** the resulting plain `.js` **files using** [Node.js](https://nodejs.org/), a container, or a cloud platform.
+
+**Running** `.ts` files directly in production **using on-the-fly execution tools** (such as `tsx`, `ts-node`) is generally **considered bad practice** for four main reasons:
+- **Resource Overhead:** consumes **extra CPU and memory** by transpiling code at startup.
+- **Security Risk:** expands the **attach surface** by bundling build-time dependencies in production.
+- **False Confidence:** strips types for speed **without running actual** compiler type checks.
+- **Tooling Friction:** complicates V8 **profiling,** stack **traces,** and error **debugging.**
+
+We'll use a **multi-stage build to containerize** the application:
+- **Build stage:** installs depedencies and compiles the application in a standard image.
+
+    ```dockerfile
+    # first stage: build the application
+    ## install dependencies
+    FROM node:26.12.0-alpine3.24 AS builder
+    WORKDIR /app
+    COPY package*.json .
+    RUN npm ci
+
+    ## transpile .ts files to .js files
+    COPY tsconfig.json .
+    COPY src ./src
+    RUN npm run build
+    ```
+- **Production stage:** copies only the required application artifacts from the build stage into a lightweight production image, keeping the final container small and secure.
+
+    ```dockerfile
+    # second stage: create a production image
+    ## prepare the runtime environment
+    FROM gcr.io/distroless/nodejs26
+    WORKDIR /app
+    COPY --from=builder /app/node_modules ./node_modules
+    COPY --from=builder /app/dist/app.js .
+
+    ## run the application
+    CMD ["app.js"]
+    ```
+
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
