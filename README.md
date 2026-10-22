@@ -35,6 +35,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Introduction to Distroless Images](#introduction-to-distroless-images)
   - [Introduction to Multi-stage Dockerfiles](#introduction-to-multi-stage-dockerfiles)
   - [Adding TypeScript to The Express App](#adding-typescript-to-the-express-app)
+  - [Optimizing Docker Images](#optimizing-docker-images)
 - [Reference](#reference)
 
 
@@ -1020,26 +1021,26 @@ In this project, we create a **user management API** using [Node.js](https://nod
   - Use `ENTRYPOINT` **with** `CMD` when the image **is intended to** behave like a dedicated **executable or tool,** and we want users to **pass arguments to** that tool.
 
 ### Introduction to Distroless Images
-- A distroless image is a **minimal container image** that contains our application and only the runtime components it needs to run, rather than a general-purpose operating system environment.
+- A Distroless image is a **minimal container image** that contains our application and only the runtime components it needs to run, rather than a general-purpose operating system environment.
 
   The idea is to **leave out unnecessary components** such as package managers, shells, and other standard Linux utilities.
 - Distroless images are **commonly associated with** Google's [Distroless project](https://github.com/GoogleContainerTools/distroless), which **provides minimal base images** for several languages and runtimes.
-- **Advantages** of distroless images:
+- **Advantages** of Distroless images:
   - **smaller image:** it excludes many tools that production applications don't need.
   - **reduced attack surface:** fewer installed components can mean fewer potential vulnerabilities.
   - **cleaner security scans:** fewer unrelated packages and CVEs to investigate.
   - **production-focused:** encourages building an image specifically for running the application.
-- **Limitation** of distroless images:
+- **Limitation** of Distroless images:
   - **No ordinary shell:** there's no `sh` executable iln the standard image.
   - **No package manager:** generally, we can't use `apt`, `apk`, or similar tools inside the final image to install packages.
   - **Debug requires a different approach:** we can use Docker's logs and `inspect` commands, or use the project's special `:debug` image variants.
-- **Build** an image **using a distroless** base image:
+- **Build** an image **using a Distroless** base image:
   - Consider a **simple application** `app.js`:
       ```js
       'use strict';
-      console.log("Hello from distroless Node.js application!");
+      console.log("Hello from Distroless Node.js application!");
       ```
-  - The Dockerfile below **uses a distroless** base image:
+  - The Dockerfile below **uses a Distroless** base image:
 
       ```dockerfile
       FROM gcr.io/distroless/nodejs26
@@ -1048,27 +1049,27 @@ In this project, we create a **user management API** using [Node.js](https://nod
       CMD ["app.js"]
       ```
   - **Key difference:**
-    - **Distroless base image:** instead of pulling a standard [Node.js](https://nodejs.org/) image from [Docker Hub](https://hub.docker.com), we **pull a distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
-    - **Simplified** `CMD`: The `CMD` instruction **only specifies** `app.js` because the distroless image **already sets** `node` as its default `ENTRYPOINT`.
+    - **Distroless base image:** instead of pulling a standard [Node.js](https://nodejs.org/) image from [Docker Hub](https://hub.docker.com), we **pull a Distroless image** from [Google Container Registry (gcr.io)](https://console.cloud.google.com/artifacts/docker/distroless/us/gcr.io).
+    - **Simplified** `CMD`: The `CMD` instruction **only specifies** `app.js` because the Distroless image **already sets** `node` as its default `ENTRYPOINT`.
 - **Recommendation:**
   - **For development:** use **standard** base image.
-  - **For production:** use a **distroless** runtime **after** the application builds and runs **reliably.**
+  - **For production:** use a **Distroless** runtime **after** the application builds and runs **reliably.**
 
   The **core idea** is simple: **build** with the **tools we need,** but **deploy only** the runtime components **the application needs.**
 
 ### Introduction to Multi-stage Dockerfiles
 - Creating an **application image** typically involves **two phases:** build and run.
   - The **build phase** often **requires a full base image** containing all necessary build tools and dependencies.
-  - In the **run phase,** we can **leverage a distroless image** to minimize and create a lean final image size.
+  - In the **run phase,** we can **leverage a Distroless image** to minimize and create a lean final image size.
 - **Multi-stage builds** enable us to **use multiple** `FROM` instructions **within a single** `Dockerfile`. This allows us to **divide** the build process **into distinct stages.**
-- A **common pattern** for using a distroless image is a **multi-stage build:**
+- A **common pattern** for using a Distroless image is a **multi-stage build:**
   - use a **standard base image to** install dependencies and compile the application.
-  - **copy only** the **compiled artifacts** and **runtime dependencies** into a **clean distroless image** for execution.
+  - **copy only** the **compiled artifacts** and **runtime dependencies** into a **clean Distroless image** for execution.
 - **Build** an image using a **multi-stage build:**
   - We'll build a **Docker image for** the user management **application created** in the [Build an Express app](#building-an-express-app).
   - The `Dockerfile` use **two-stage build:**
     - **First stage:** installs application dependencies. **The** `AS` keyword of the `FROM` instruction **names** this stage `builder` for future reference.
-    - **Second stage:** creates a minimal **runtime image** using a distroless base. **The** `--from` flag in the `COPY` instruction **copies** `node_moudles` directly **from** the `builder` stage.
+    - **Second stage:** creates a minimal **runtime image** using a Distroless base. **The** `--from` flag in the `COPY` instruction **copies** `node_moudles` directly **from** the `builder` stage.
 
     ```dockerfile
     # first stage: install dependencies
@@ -1077,13 +1078,13 @@ In this project, we create a **user management API** using [Node.js](https://nod
     COPY package*.json ./
     RUN npm ci --omit=dev
 
-    # second stage: create a minimal image using distroless
+    # second stage: create a minimal image using Distroless
     FROM gcr.io/distroless/nodejs26
     WORKDIR /app
     COPY --from=builder /app/node_modules ./node_modules
     COPY app.js .
 
-    # run the application using the distroless Node.js runtime
+    # run the application using the Distroless Node.js runtime
     CMD ["app.js"]
     ```
 
@@ -1137,6 +1138,54 @@ We'll use a **multi-stage build to containerize** the application:
     CMD ["app.js"]
     ```
 
+### Optimizing Docker Images
+- Selecting **Base Images:**
+  - Using **smaller base images** such as `node:26-slim` or `node:26-alpine` **significally reduces** final image size compared to the standard `node:26` image.
+  - Smaller base images **lower download times** and **reduce the security attack surface.**
+  - While `alpine` image yields **the smallest** footprint, it **may require addtional** native dependencies **for certain** Node modules. **Choosing the right** base image **balances** size, build time, and the dependencies the application requires.
+- Optimizing **Instruction Order and Caching:**
+  - Docker **invalidates layer caches from** the point of **the first changed instruction.**
+  - It's recommended to **place stable steps,** such as dependency installation, **early** in the `Dockerfile` and **frequently changing steps** like copying source code **near the button.** This ordering **speeds up** build times **without altering** image size or runtime behavior.
+- Managing **Runtime Dependencies:**
+  - **Exclude** development dependencies, such as TypeScript compilers or testing Framework like Jets, **from** production environments.
+  - Running `npm ci --omit=dev` **installs only** runtime requirements, **shrinking** image size and **eliminating** dev-tool vulnerability.
+- **Multi-Stage Build Pipeline:** For TypeScript or pre-compiled applications, **implement a multi-stage** `Dockerfile`:
+  - **Build Stage:** installs **all dependencies,** including `devDependencies` **and compiles** the source code.
+  - **Dependencies Stage:** installs **only production dependencies,** `npm ci --omit=dev`.
+  - **Runtime Stage:** uses a **minimal base,** such as a Distroless image, and **copies over only** the compiled build artifacts and **production dependencies** `node_modules`.
+- Optimizing **Our TypeScript** `Dockerfile`:
+  - Build Stage:
+
+    ```dockerfile
+    # first stage: build the application
+    FROM node:26.12.0-alpine3.24 AS builder
+    WORKDIR /app
+    COPY package*.json .
+    RUN npm ci
+    COPY tsconfig.json .
+    COPY src ./src
+    RUN npm run build
+    ```
+  - Dependencies Stage:
+
+    ```dockerfile
+    # second stage: install runtime dependencies
+    FROM node:26.12.0-alpine3.24 AS runtime-deps
+    WORKDIR /app
+    COPY package*.json .
+    RUN npm ci --omit=dev
+    ```
+  - Runtime Stage:
+
+    ```dockerfile
+    # third stage: prepare the runtime environment
+    FROM gcr.io/distroless/nodejs26
+    WORKDIR /app
+    COPY --from=runtime-deps /app/node_modules ./node_modules
+    COPY --from=builder /app/dist/app.js .
+    # run the application
+    CMD ["app.js"]
+    ```
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
