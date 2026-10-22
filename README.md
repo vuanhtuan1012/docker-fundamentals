@@ -839,10 +839,10 @@ In this project, we create a **user management API** using [Node.js](https://nod
     }
     ```
     It means that **when** we run `npm start` in terminal, `npm` **executes** the command `node app.js` to start our [Express](https://expressjs.com/) application.
-- `scripts`: contains commands that we can run through `npm`.
-- `start`: the name of the script.
-- `node app.js`: the shell command `npm` executes when we run that script.
-- We can **define multiple scripts** in the same `scripts` objects. *For example:*
+- `scripts`: **defines commands** that we can run through `npm`. *For example:*
+  - `start`: the name of the command.
+  - `node app.js`: the shell command `npm` executes when we run that command.
+- We can **define multiple commands** in the same `scripts` objects. *For example:*
 
     ```json
     "scripts": {
@@ -852,7 +852,7 @@ In this project, we create a **user management API** using [Node.js](https://nod
     }
     ```
     Then we can run:
-    - `npm start`: start the application
+    - `npm start`: start the application.
     - `npm run dev`: start the application with [Node.js](https://nodejs.org/) watch mode, which restarts it when files change.
     - `npm test`: run tests using [Node.js](https://nodejs.org/)'s built-in test runtime.
 - `npm` scripts **provide convenience and consistency** across development environments. Instead of memorizing long or complex CLI commands, developers can execute a short, standardized script.
