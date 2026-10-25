@@ -7,12 +7,16 @@
   - [JSX](#jsx)
   - [Create Your First React App](#create-your-first-react-app)
   - [Build Your First Interactive Component](#build-your-first-interactive-component)
+- [Props and State](#props-and-state)
+  - [Props: Passing Data to a Component](#props-passing-data-to-a-component)
+  - [State: Data That Changes](#state-data-that-changes)
+  - [Props vs. State](#props-vs-state)
 
 ## Components and JSX
 
 ### Components
 - A [React](https://react.dev/) app is typically **built from reusable pieces** called components. Each **component** has a **specific responsibility** and **can be reused** in multiple places.
-- [React](https://react.dev/) components are **ordinary JavaScript functions** that return [React](https://react.dev/)**-renderable content.** Their names **conventionally start with a capital letter.** *For example:*
+- [React](https://react.dev/) **components** are ordinary JavaScript **functions that** return [React](https://react.dev/)**-renderable content.** Their names **conventionally start with a capital letter.** *For example:*
 
   ```ts
   function Welcome() {
@@ -160,9 +164,6 @@ function App() {
       <section id="center">
         <div>
           <h1>The First React App</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
         </div>
         <button
           type="button"
@@ -189,3 +190,159 @@ This line **creates a state** variable:
 - `useState(10)`: **initializes** the value to `10`.
 
 When the counter **button is clicked,** the [React](https://react.dev/) **runs** the function `setCount((count) => count + 1)`, **updates** the state and **renders** the component again **to reflect** the new value.
+
+
+## Props and State
+
+### Props: Passing Data to a Component
+- **Props** are inputs **passed from** a parent [component](#components) **to** a child [component](#components). *For example,* **rather than** creating separate components **for each** individual user in the [`App` component](#build-your-first-interactive-component), we **pass dynamic** user data using props.
+
+  ```ts
+  function App() {
+    return (
+      <>
+        <section id="next-steps">
+          <div id="docs">
+            <UserCard name='John Doe' age={30} isActive />
+            <UserCard name='Jane Smith' age={25} isActive={false} />
+            <UserCard name='Alex Martin' age={35} isActive />
+          </div>
+        </section>
+      </>
+    )
+  }
+  ```
+  `UserCard` is a **child component** of `App`, defined as follow:
+
+  ```ts
+  type UserCardProps = {
+    name: string;
+    age?: number;
+    isActive?: boolean;
+  }
+
+  function UserCard({ name, age, isActive }: UserCardProps) {
+    return (
+      <article>
+        <h2>{name}</h2>
+        <p>Age: {age}</p>
+        <p>Status: {isActive ? 'Active' : 'Inactive'}</p>
+      </article>
+    );
+  }
+  ```
+- In the `UserCard` function defintion, the `{ name, age, isActive}` **syntax** uses **JavaScript destructuring** to **unpack** properties directly **from** the`UserCardProps` props object.
+
+  We can write the **equivalent code without destructing** as follow:
+  ```ts
+  function UserCard(userCard: UserCardProps) {
+    return (
+      <article>
+        <h2>{userCard.name}</h2>
+        <p>Age: {userCard.age}</p>
+        <p>Status: {userCard.isActive ? 'Active' : 'Inactive'}</p>
+      </article>
+    );
+  }
+  ```
+  Both approaches are valid. **Destructuring is common** in [React](https://react.dev/) code.
+- Finally, props are **passed via JSX tags** as follow:
+  ```ts
+  <UserCard name='Jane Smith' age={25} isActive={false} />
+  ```
+  **Notice that** we use tags **rather than** function calling directly, like `UserCard()`. [React](https://react.dev/) **manages** component rendering.
+  - `name='Jane Smith'` passes a string.
+  - `age={25}` passes a number.
+  - `isActive={false}` passes a boolean.
+
+### State: Data That Changes
+- While **props** allow a component receive data, **state allows** a component to **manage data** that changes over time.
+- [React](https://react.dev/) provides a **Hook** called `useState` for **managing state** in a function component.
+- The `useState` Hook **return an array** containing the current state and a setter function. *For example,*
+
+  ```ts
+  const [count, setCount] = useState(10);
+  ```
+  Calling `setCount` tells [React](https://react.dev/) that the state has changed and that the component needs to render again.
+- **Pass a direct value** when the new state is **independent of** the previous state, but **use an updater function** when the next state **depends on** the current state: *For example,*
+
+  ```ts
+  <button
+    type="button"
+    onClick={() => setCount(0)}
+  >
+    Reset
+  </button>
+  <button
+    type="button"
+    onClick={() => setCount(count => count + 1)}
+  >
+    + Increase
+  </button>
+  ```
+- **Important:** do **not** modify state **directly,** always use the setter function.
+
+### Props vs. State
+- This is **one of the most** important distinctions in [React](https://react.dev/).
+
+  | Props                                                    | State                                                       |
+  |----------------------------------------------------------|-------------------------------------------------------------|
+  | **Passed into** a component                              | **Managed by** the component using a Hook such as `useState`    |
+  | Used to **configure a component**                        | Used to **store changing data**                                 |
+  | **Read-only** from the receiving component's perspective | **Updated** using a state setter                                |
+  | Can **be passed** from parent to child                   | Can **change in response** to user interactions or other events |
+- *For example,* consider the following `Counter` **component** and **its parent** `App`.
+
+  ```ts
+  type CounterProps = {
+    initVal: number;
+  }
+
+  function Counter({ initVal }: CounterProps) {
+    const [count, setCount] = useState(initVal);
+
+    return (
+      <>
+        <div className='counter'>Counter is {count}</div>
+        <div className='button-group'>
+          <button
+            type="button"
+            onClick={() => setCount(count => count - 1)}
+          >
+            - Decrease
+          </button>
+          <button
+            type="button"
+            onClick={() => setCount(initVal)}
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={() => setCount(count => count + 1)}
+          >
+            + Increase
+          </button>
+        </div>
+      </>
+    )
+  }
+
+  function App() {
+    const initVal = 10;
+    const [count, setCount] = useState(initVal);
+
+    return (
+      <>
+        <section id="center">
+          <div>
+            <h1>The First React App</h1>
+          </div>
+          <Counter initVal={5} />
+        </section>
+    )
+  }
+  ```
+  - `initVal` in `<Counter initVal={5} />` is a **prop** supplied by the `App` component to its child `Counter`.
+  - `count` in `const [count, setCount] = useState(initVal);` is **state** managed by the `Counter` component.
+  - Clicking on buttons **updates** the `count` state, **not** the `initVal` prop.
