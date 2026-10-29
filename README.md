@@ -34,6 +34,7 @@ This repository is a structured, comprehensive collection of notes designed base
   - [`CMD` vs. `ENTRYPOINT`](#cmd-vs-entrypoint)
   - [Introduction to Distroless Images](#introduction-to-distroless-images)
   - [Introduction to Multi-stage Dockerfiles](#introduction-to-multi-stage-dockerfiles)
+  - [Introduction to TypeScript](#introduction-to-typescript)
   - [Adding TypeScript to The Express App](#adding-typescript-to-the-express-app)
   - [Optimizing Docker Images](#optimizing-docker-images)
 - [Reference](#reference)
@@ -1088,9 +1089,7 @@ In this project, we create a **user management API** using [Node.js](https://nod
     CMD ["app.js"]
     ```
 
-### Adding TypeScript to The Express App
-We'll build a Docker image for the [TypeScript](https://www.typescriptlang.org/) and [Express](https://expressjs.com/) **user management API** located in [/ts-users-api](/ts-users-api/). For an introduction to [TypeScript](https://www.typescriptlang.org/) and detailed documentation on building the user management API, see [Introduction to TypeScript](typescript.md).
-
+### Introduction to TypeScript
 Developed by Microsoft, [TypeScript](https://www.typescriptlang.org/) is an open-source, **strongly typed superset** of JavaScript that **provides:**
   - **IDE Intelligence:** Auto-completion, inline docs, and safe refactoring.
   - **Living Documentation:** Types explicitly define data structures across the application.
@@ -1107,6 +1106,11 @@ Developed by Microsoft, [TypeScript](https://www.typescriptlang.org/) is an open
 - **Security Risk:** expands the **attach surface** by bundling build-time dependencies in production.
 - **False Confidence:** strips types for speed **without running actual** compiler type checks.
 - **Tooling Friction:** complicates V8 **profiling,** stack **traces,** and error **debugging.**
+
+For a **broader overview** of [TypeScript](https://www.typescriptlang.org/) and a **step-by-step guide** to building the **user management API,** refer to the [Introduction to TypeScript](typescript.md) documentation. The **complete source code** is available in the [/ts-users-api](/ts-users-api/) directory.
+
+### Adding TypeScript to The Express App
+We'll build a Docker image for the [TypeScript](https://www.typescriptlang.org/) and [Express](https://expressjs.com/) **user management API** located in [/ts-users-api](/ts-users-api/) directory.
 
 We'll use a **multi-stage build to containerize** the application:
 - **Build stage:** installs depedencies and compiles the application in a standard image.
@@ -1186,6 +1190,7 @@ We'll use a **multi-stage build to containerize** the application:
     # run the application
     CMD ["app.js"]
     ```
+
 
 ## Reference
 1. [Docker Fundamentals - Understanding Containers and Images](https://www.coursera.org/learn/packt-docker-fundamentals-understanding-containers-and-images-pxlac)
