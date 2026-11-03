@@ -21,6 +21,11 @@
 - [`useEffect` and API Calls](#useeffect-and-api-calls)
   - [Fetch Data from API](#fetch-data-from-api)
   - [Refetch Data on Endpoint Changes](#refetch-data-on-endpoint-changes)
+- [Organize Pages and Add Routing](#organize-pages-and-add-routing)
+  - [React Router](#react-router)
+  - [Layout and Navigation](#layout-and-navigation)
+  - [Pages](#pages)
+
 
 ## Components and JSX
 
@@ -159,7 +164,6 @@
       ```
 
 ### Build Your First Interactive Component
-
 First, **replace the styles** for the app in `src/App.css`  by the contents of [this file](react-app/src/App.css).
 
 **Replace** the contents of `src/App.tsx`  with this **example:**
@@ -458,8 +462,8 @@ When the counter **button is clicked,** the [React](https://react.dev/) **runs**
   - **Don't use** random values that change on every render.
   - **Avoid using** the array index as a key when items can be added, removed, or reordered.
 
-## Building an Interactive User List
 
+## Building an Interactive User List
 In this section, we'll **combine** state management, event handlers, and Array `.map()` **to build** an interactive user management feature:
 - **removing** existing users from the user list and
 - **adding** new users to it.
@@ -726,6 +730,7 @@ const [users, setUsers] = useState<User[]>([
   - `components/UserCard.tsx` **defines** `UserCardProps`, `UserCardGridProps`, and the internal `UserCardProps` subcomponent; **exports** only the`UserCardGrid` component.
   - `components/UserList.tsx` **defines** `UserItemProps`, `UserListProps` and the internal `UserItem` subcomponent; **exports** only the `UserList` component.
 
+
 ## `useEffect` and API Calls
 - Applications often need to interact with external systems to:
   - fetch data from a backend API.
@@ -746,7 +751,6 @@ const [users, setUsers] = useState<User[]>([
 - **Important:** when a specified dependency changes, [React](https://react.dev/) runs the **previous** render's **cleanup function** (*if defined*) **before** executing the effect again.
 
 ### Fetch Data from API
-
 In this section, we will use `useEffect` hook to **fetch data** from the `https://jsonplaceholder.typicode.com/users` endpoint **and populate** an API User Cards component.
 
 - **Define** the `ApiUser` type in `types/user.tsx`.
@@ -877,8 +881,8 @@ In this section, we will use `useEffect` hook to **fetch data** from the `https:
   }
 
   async function fetchUsers(apiURL: string): Promise<ApiUser[]> {
-    const latency = 3; // seconds
-    await delay(latency); // simulate network latency
+    const network_latency = 3; // seconds
+    await delay(network_latency); // simulate network latency
     const response = await fetch(apiURL, { signal });
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}, API URL: ${response.url}`);
@@ -938,7 +942,6 @@ In this section, we will use `useEffect` hook to **fetch data** from the `https:
   ```
 
 ### Refetch Data on Endpoint Changes
-
 In this section, we will **update** the `ApiUserCardGrid` and its `useEffect` hook to **refetch data** whenever the API endpoint prop changes.
 - **Update** `ApiUserCardGrid` component to accept an `endpoint` prop.
 
@@ -996,4 +999,183 @@ In this section, we will **update** the `ApiUserCardGrid` and its `useEffect` ho
 
   ```ts
   <ApiUserCardGrid endpoint={apiURL} />
+  ```
+
+
+## Organize Pages and Add Routing
+In this section, we will **decompose** `App.tsx` into dedicated page views **and extract** shared components **to** improve readability and long-term maintainability. The resulting project structure is as follows:
+
+```text
+src/
+├── App.css
+├── App.tsx
+├── assets/
+├── components/
+│   ├── AddUserForm.tsx
+│   ├── ApiUserCard.tsx
+│   ├── Counter.tsx
+│   ├── Layout.tsx
+│   ├── Navigation.tsx
+│   ├── UserCard.tsx
+│   └── UserList.tsx
+├── index.css
+├── main.tsx
+├── pages/
+│   ├── ApiUsersPage.tsx
+│   ├── HomePage.tsx
+│   └── UsersPage.tsx
+└── types/
+    └── user.ts
+```
+- `pages/HomePage.tsx`: hosts the [Counter](#build-your-first-interactive-component) view.
+- `pages/UsersPage.tsx` hosts the [In-Memory Users Management](#building-an-interactive-user-list) view.
+- `pages/ApiUsersPage.tsx` hosts the [API Users Management](#useeffect-and-api-calls) view.
+- `components/Layout.tsx`: defines the top-level shell and shared layout structure across pages.
+- `components/Navigation.tsx`: renders navigation links to switch between views.
+- `App.tsx`: manages routing, route definitions, and page-level composition.
+
+### React Router
+- React Router is the **standard routing library** for [React](https://react.dev/) application. It **enables client-side routing,** allowing our single-page application (SPA) to navigate between different views or components **without triggering** a full page reload from the server.
+- **Core Concepts:**
+  - **Client-Side Routing:** instead of the browser requesting a new HTML page from a server when the URL changes, React Router **intercepts** the URL change **and conditionally renders** matching [React](https://react.dev/) components in the DOM.
+  - **Declarative Navigation:** routes are **configured using** declarative [React](https://react.dev/) elements (`<Route>`, `<Routes>`), typing specific URL paths directly to components hierarchies.
+- **Key Building Blocks:**
+  - `<BrowserRouter>` is the **top-level provider component** in `react-router-dom` that **connects** our [React](https://react.dev/) application to the browser's address bar.
+
+    It **wraps** our entire application to store the current location in the browser's address bar **and updates** it using clean, standard URLs.
+
+    ```ts
+    function App() {
+      return (
+        <BrowserRouter>
+          // all routing logic, Links, and Route components must live inside here
+        </BrowserRouter>
+      )
+    }
+    ```
+  - `<Routes>` is the **parent wrapper** that **inspects** the current URL location and **chooses** the single best `<Route>` child to render.
+
+    `<Routers>` **scores** all route paths based on specificity **and picks** the best match **regardless of** the order they are defined.
+  - `<Route>` **specifies** what UI should display **when** the browser's URL matches a given path pattern. Primary props:
+    - `path`: the URL segment to match. *For example,* `/`, `/users`, `/api-users`, etc.
+    - `element`: the [React](https://react.dev/) **element to mount** when the path matches. For example, `<Home />`, `<Uses />`, `<Navigation />` etc.
+
+    **Every** `<Route>` component **must be** rendered directly **inside** a `<Routes>` component, **or nested** inside another `<Route>`. *For example,*
+
+    ```ts
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path='/users' element={<UsersPage />} />
+        <Route path='/api-users' element={<ApiUsersPage />} />
+      </Route>
+    </Routes>
+    ```
+  - `<Outlet>` acts as a **placeholder** inside parent layouts **to render** matching nested child routes.
+- **Install** React Router using `npm`:
+
+  ```bash
+  npm install react-router
+  ```
+
+### Layout and Navigation
+- The `Navigation` component (`components/Navigation.tsx`) **renders** link to navigate between page views.
+
+  ```ts
+  import { NavLink } from 'react-router';
+  export function Navigation() {
+    return (
+      <nav className="navigation">
+        <NavLink
+          to="/" end
+          className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+        >
+          Home
+        </NavLink>
+        <NavLink
+          to="/users"
+          className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+        >
+          Users
+        </NavLink>
+        <NavLink
+          to="/api-users"
+          className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+        >
+          API Users
+        </NavLink>
+      </nav>
+    );
+  }
+  ```
+- The `Layout` component (`components/Layout.tsx`) **defines** the global application shell. It **establishes** shared UI elements across views **and renders** an `<Outlet />` placeholder **where** matching child page routes are injected.
+
+  ```ts
+  import { Outlet } from "react-router";
+  import Navigation from "./Navigation";
+
+  function Layout() {
+    return (
+      <div className="app-layout">
+        <Navigation />
+
+        <main className="app">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
+  ```
+
+### Pages
+- First, **decompose** `App.tsx` by grouping its existing components **into** dedicated page views:
+  - `pages/HomePage.tsx`: hosts the [Counter](#build-your-first-interactive-component) view.
+  - `pages/UsersPage.tsx` hosts the [In-Memory Users Management](#building-an-interactive-user-list) view.
+  - `pages/ApiUsersPage.tsx` hosts the [API Users Management](#useeffect-and-api-calls) view.
+
+  *For example,* `pages/Homepage.tsx` isolates the `Counter` feature into its own view component.
+
+  ```tsx
+  import { Counter } from '../components/Counter';
+
+  export function HomePage() {
+    return (
+      <>
+        <h1 className="app-title">The First React App</h1>
+        <section className="counter-section">
+          <Counter initVal={0} />
+        </section>
+      </>
+    )
+  }
+  ```
+- Then, with the page views and layout in place, **refactor** `App.tsx` into a lean routing configuration file, as follows:
+
+  ```ts
+  import './App.css';
+
+  import { BrowserRouter, Routes, Route } from 'react-router';
+
+  import Layout from './components/Layout';
+
+  import UsersPage from './pages/UsersPage';
+  import HomePage from './pages/HomePage';
+  import ApiUsersPage from './pages/ApiUsersPage';
+
+
+  function App() {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path='/users' element={<UsersPage />} />
+            <Route path='/api-users' element={<ApiUsersPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    )
+  }
+
+  export default App;
   ```
