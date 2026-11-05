@@ -35,8 +35,11 @@ This repository is a structured, comprehensive collection of notes designed base
   - [Introduction to Distroless Images](#introduction-to-distroless-images)
   - [Introduction to Multi-stage Dockerfiles](#introduction-to-multi-stage-dockerfiles)
   - [Introduction to TypeScript](#introduction-to-typescript)
-  - [Adding TypeScript to The Express App](#adding-typescript-to-the-express-app)
+  - [Adding TypeScript to the Express App](#adding-typescript-to-the-express-app)
   - [Optimizing Docker Images](#optimizing-docker-images)
+- [Containerize React App](#containerize-react-app)
+  - [Introduction to React](#introduction-to-react)
+  - [Creating a Dockerfile for React App](#creating-a-dockerfile-for-react-app)
 - [Reference](#reference)
 
 
@@ -1093,7 +1096,7 @@ In this project, we create a **user management API** using [Node.js](https://nod
 Developed by Microsoft, [TypeScript](https://www.typescriptlang.org/) is an open-source, **strongly typed superset** of JavaScript that **provides:**
   - **IDE Intelligence:** Auto-completion, inline docs, and safe refactoring.
   - **Living Documentation:** Types explicitly define data structures across the application.
-  - **Runtime Safety:** Compiler checks catch null / undefined errors before execution.
+  - **Runtime Safety:** Compiler checks catch `null` / `undefined` errors before execution.
   - **Scalability:** Compiler alerts prevent breaking changes during team collaboration and refactoring.
   - **Compatability:** Transpile modern ECMAScript features to older JS runtime targets.
 
@@ -1109,7 +1112,7 @@ Developed by Microsoft, [TypeScript](https://www.typescriptlang.org/) is an open
 
 For a **broader overview** of [TypeScript](https://www.typescriptlang.org/) and a **step-by-step guide** to building the **user management API,** refer to the [Introduction to TypeScript](typescript.md) documentation. The **complete source code** is available in the [/ts-users-api](/ts-users-api/) directory.
 
-### Adding TypeScript to The Express App
+### Adding TypeScript to the Express App
 We'll build a Docker image for the [TypeScript](https://www.typescriptlang.org/) and [Express](https://expressjs.com/) **user management API** located in [/ts-users-api](/ts-users-api/) directory.
 
 We'll use a **multi-stage build to containerize** the application:
@@ -1190,6 +1193,53 @@ We'll use a **multi-stage build to containerize** the application:
     # run the application
     CMD ["app.js"]
     ```
+
+
+## Containerize React App
+
+### Introduction to React
+[React](https://react.dev/) is a **JavaScript library for** building user interface (UI). It was developed by Meta. A [React](https://react.dev/) app is an application whose **user interface is built** using [React](https://react.dev/) components.
+
+**Deploying** a [React](https://react.dev/) project to production **involves a two-stage lifecycle:**
+- **Build:** compiles TypeScript and JSX into minified, browser-ready static assets (HTML, CSS, and JavaScript bundles).
+- **Run:** **serves** the the built assets using a static web server, container, or cloud platform.
+
+The build stage **executes** several optimization and packaging tasks:
+- **Compiles** TypeScript and JSX into standard JavaScript.
+- **Bundles** JavaScript module into static distribution chunks.
+- **Tree-shakes** dead code to eliminate unused dependencies and exports.
+- **Minifies** JavaScript and CSS to reduce payload size.
+- **Optimizes** and hashes static assets (images, SVGs, and fonts) for efficient caching.
+
+For a **broader overview** of [React](https://react.dev/) and a **step-by-step guide** to scaffolding an application with [Vite](https://vite.dev/) + [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/), refer to the [Introduction to React](react.md) documentation. The **complete source code** is available in the [/react-app](/react-app/) directory.
+
+### Creating a Dockerfile for React App
+We'll build a Docker image for the [React](https://react.dev/) application located in [/react-app](/react-app/) directory.
+
+We use a **two-stage build to containerize** the application:
+- **Build stage:** uses a full Node.js image to install dependencies and compile the production bundle.
+
+    ```dockerfile
+    # first stage: build the application
+    ## install dependencies
+    FROM node:26.12.0-alpine3.24 AS builder
+    WORKDIR /app
+    COPY package*.json .
+    RUN npm ci
+
+    ## build the application
+    COPY . .
+    RUN npm run build
+    ```
+- **Production stage:** copies only the compiled static assets from the `dist/` directory into a lightweight webserver image keeping the final container minimal and secure.
+
+    ```dockerfile
+    # second stage: create a production image
+    FROM nginx:1.30.5
+    COPY --from=builder /app/dist /usr/share/nginx/html/
+    ```
+
+**Important:** create a `.dockerignore` file in the project root **to exclude** `node_modules/`, `dist/` and `.git/` **from** the Docker build context. Excluding these directories **prevents** copying bloated local dependencies into the build context **and ensures** dependencies are installed cleanly inside the container environment.
 
 
 ## Reference
